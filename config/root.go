@@ -8,13 +8,13 @@ import (
 )
 
 type Config struct {
-	Env        string `env:"COURSEPICK_ENV"`
-	AppPort    string `env:"APP_PORT"`
-	DBHost     string `env:"DB_HOST"`
-	DBPort     int    `env:"DB_PORT"`
-	DBUser     string `env:"DB_USER"`
-	DBPassword string `env:"DB_PASSWORD"`
-	DBName     string `env:"DB_NAME"`
+	Env        string `env:"COURSEPICK_ENV" envDefault:"dev"`
+	AppPort    string `env:"APP_PORT" envDefault:"8080"`
+	DBHost     string `env:"DB_HOST" envDefault:"db"`
+	DBPort     int    `env:"DB_PORT" envDefault:"3306"`
+	DBUser     string `env:"DB_USER" envDefault:"coursepick"`
+	DBPassword string `env:"DB_PASSWORD" envDefault:"coursepick_pw"`
+	DBName     string `env:"DB_NAME" envDefault:"coursepick_db"`
 }
 
 func SetConfig() (*Config, error) {

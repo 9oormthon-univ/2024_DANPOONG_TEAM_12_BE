@@ -12,6 +12,6 @@ go.work
 go.work.sum
 
 .env
-
+.idea
 /tmp
 /_tools
