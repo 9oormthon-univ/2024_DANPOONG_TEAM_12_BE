@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/cmd"
+)
 
 func main() {
-	fmt.Println("hello world")
+	cmd.Run()
 }
