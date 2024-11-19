@@ -1,0 +1,44 @@
+
+services:
+  app:
+    image: coursepick-backend
+    container_name: coursePick-app
+    restart: on-failure
+    build:
+      context: .
+      args:
+        - target=dev
+    environment:
+      COURSEPICK_ENV: dev
+      APP_PORT: 8080
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      OPENAI_API_KEY : ${OPENAI_API_KEY}
+      TOUR_API_KEY : ${TOUR_API_KEY}
+    volumes:
+      - .:/app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+  db:
+    image: mysql:8.0.29
+    container_name: coursePick-db
+    platform: linux/amd64
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./_tools/mysql/conf.d:/etc/mysql/conf.d:cached
+    ports:
+      - "3306:3306"
+
+volumes:
+  db-data:
+
