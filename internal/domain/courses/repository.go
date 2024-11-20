@@ -1,6 +1,8 @@
 package courses
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type CoursesRepository struct {
 	DB *gorm.DB

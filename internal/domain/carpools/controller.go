@@ -16,3 +16,7 @@ func SetCarpoolsController(api *gin.RouterGroup, service types.CarpoolsService) 
 	// 핸들러 등록
 	return c
 }
+
+func (c *CarpoolsController) PostCourseAI(ctx *gin.Context) {
+
+}
