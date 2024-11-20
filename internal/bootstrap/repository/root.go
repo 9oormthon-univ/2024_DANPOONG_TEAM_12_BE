@@ -71,6 +71,11 @@ func SetRepository(cfg *config.Config) (*Repository, error) {
 	r.CoursesRepository = courses.SetCoursesRepository(r.DB)
 	r.MatchingRepository = matching.SetMatchingRepository(r.DB)
 
+	err = db.DbCRUDtest(r.DB)
+	if err != nil {
+		log.Println("데이터 베이스 테스트 실패..")
+	}
+
 	return r, nil
 }
 
