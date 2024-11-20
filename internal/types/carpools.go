@@ -20,3 +20,10 @@ type Carpool struct {
 	Status         string        `gorm:"type:enum('active','inactive');not null"`
 	Likes          []CarpoolLike `gorm:"foreignKey:CarpoolID"`
 }
+
+type CarpoolLike struct {
+	LikeID    int       `gorm:"primaryKey;autoIncrement"`
+	UserID    int       `gorm:"not null"`
+	CarpoolID int       `gorm:"not null"`
+	LikedAt   time.Time `gorm:"autoCreateTime"`
+}
