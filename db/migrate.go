@@ -10,28 +10,46 @@ import (
 )
 
 func ResetDatabase(db *gorm.DB) error {
-	// 모델 기반으로 삭제할 테이블
+	log.Println("데이터베이스 초기화 시작...")
+
+	// 외래 키 제약 조건 비활성화
+	if err := db.Exec("SET FOREIGN_KEY_CHECKS = 0;").Error; err != nil {
+		return fmt.Errorf("외래 키 제약 조건 비활성화 실패: %w", err)
+	}
+
+	// 테이블 삭제 순서: 종속성 없는 테이블부터 시작
 	models := []interface{}{
-		&types.User{},
-		&types.Matching{},
-		&types.Category{},
 		&types.MatchingLike{},
-		&types.Carpool{},
 		&types.CarpoolLike{},
-		&types.Course{},
-		&types.Plan{},
+		&types.MatchingApplication{},
+		&types.CarpoolApplication{},
+		&types.Category{},
 		&types.Place{},
-		&types.LocalInfo{},
+		&types.Plan{},
+		&types.Course{},
+		&types.Matching{},
+		&types.Carpool{},
 		&types.Content{},
-		&types.Application{},
+		&types.LocalInfo{},
 		&types.Interest{},
+		&types.User{},
 	}
 
-	if err := db.Migrator().DropTable(models...); err != nil {
-		return fmt.Errorf("모델 기반 테이블 삭제 실패: %w", err)
+	for _, model := range models {
+		log.Printf("테이블 삭제 시도: %T\n", model)
+		if err := db.Migrator().DropTable(model); err != nil {
+			log.Printf("테이블 삭제 실패 (%T): %v\n", model, err)
+		} else {
+			log.Printf("테이블 삭제 성공 (%T)\n", model)
+		}
 	}
-	log.Println("데이터베이스 테이블 삭제 성공!!")
 
+	// 외래 키 제약 조건 다시 활성화
+	if err := db.Exec("SET FOREIGN_KEY_CHECKS = 1;").Error; err != nil {
+		return fmt.Errorf("외래 키 제약 조건 활성화 실패: %w", err)
+	}
+
+	log.Println("데이터베이스 전체 테이블 삭제 완료!")
 	return nil
 }
 

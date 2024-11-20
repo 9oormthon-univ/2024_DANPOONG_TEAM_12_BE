@@ -2,38 +2,50 @@ package types
 
 import "time"
 
-type MatchingService interface {
+type MatchingService interface{}
+
+// Matching 구조체는 매칭 정보를 나타냅니다.
+type Matching struct {
+	MatchingID   int64                 `gorm:"primaryKey;autoIncrement"`
+	Title        string                `gorm:"size:100;not null"`
+	ImageURL     string                `gorm:"size:255"`
+	Details      string                `gorm:"type:text"`
+	UserNickname string                `gorm:"size:50;not null"`
+	UserID       int64                 `gorm:"not null"`
+	Destination  string                `gorm:"size:100;not null"`
+	Date         time.Time             `gorm:"type:date;not null"`
+	StartTime    *time.Time            `gorm:"type:time"`
+	EndTime      *time.Time            `gorm:"type:time"`
+	CreatedAt    time.Time             `gorm:"autoCreateTime"`
+	UpdatedAt    time.Time             `gorm:"autoUpdateTime"`
+	User         User                  `gorm:"foreignKey:UserID;references:UserID"`
+	Categories   []Category            `gorm:"foreignKey:MatchingID;constraint:OnDelete:CASCADE;"`
+	LikesModel   []MatchingLike        `gorm:"foreignKey:MatchingID;constraint:OnDelete:CASCADE;"`
+	Applications []MatchingApplication `gorm:"foreignKey:MatchingID;constraint:OnDelete:CASCADE;"`
+	Likes        int                   `gorm:"default:0"`
 }
 
-type Matching struct {
-	MatchingID     int64          `gorm:"primaryKey;autoIncrement"` // 매칭 ID
-	Title          string         `gorm:"size:100;not null"`        // 매칭 제목
-	ImageURL       string         `gorm:"size:255"`                 // 이미지 URL
-	Details        string         `gorm:"type:text"`                // 상세 설명
-	AuthorNickname string         `gorm:"size:50;not null"`         // 작성자 닉네임
-	AuthorID       int64          `gorm:"not null"`                 // 작성자 ID
-	Destination    string         `gorm:"size:100;not null"`        // 여행지
-	Date           time.Time      `gorm:"type:date;not null"`       // 여행 날짜
-	StartTime      *time.Time     `gorm:"type:time"`                // 시작 시간
-	EndTime        *time.Time     `gorm:"type:time"`                // 종료 시간
-	CreatedAt      time.Time      `gorm:"autoCreateTime"`           // 생성 시간
-	UpdatedAt      time.Time      `gorm:"autoUpdateTime"`           // 수정 시간
-	Status         string         `gorm:"size:20;not null"`         // 상태 (active/inactive)
-	Categories     []Category     `gorm:"foreignKey:MatchingID"`    // 매칭과 연결된 카테고리들
-	Likes          []MatchingLike `gorm:"foreignKey:MatchingID"`    // 매칭과 연결된 좋아요들
+type MatchingApplication struct {
+	ApplicationID int64     `gorm:"primaryKey;autoIncrement"`
+	UserID        int64     `gorm:"not null"`
+	MatchingID    int64     `gorm:"not null"`
+	AppliedAt     time.Time `gorm:"autoCreateTime"`
+	User          User      `gorm:"foreignKey:UserID"`
+	Matching      Matching  `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 type Category struct {
-	CategoryID int64    `gorm:"primaryKey;autoIncrement"`     // 카테고리 ID
-	Name       string   `gorm:"size:50;not null"`             // 카테고리 이름
-	MatchingID int64    `gorm:"not null"`                     // 매칭 ID
-	Matching   Matching `gorm:"constraint:OnDelete:CASCADE;"` // 매칭과의 관계 (매칭 삭제 시 카테고리도 삭제)
+	CategoryID int64    `gorm:"primaryKey;autoIncrement"`
+	Name       string   `gorm:"size:50;not null"`
+	MatchingID int64    `gorm:"not null"`
+	Matching   Matching `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 type MatchingLike struct {
-	LikeID     int64     `gorm:"primaryKey;autoIncrement"`     // 좋아요 ID
-	UserID     int64     `gorm:"not null"`                     // 사용자 ID
-	MatchingID int64     `gorm:"not null"`                     // 매칭 ID
-	LikedAt    time.Time `gorm:"autoCreateTime"`               // 좋아요 생성 시간
-	Matching   Matching  `gorm:"constraint:OnDelete:CASCADE;"` // 매칭과의 관계 (매칭 삭제 시 좋아요도 삭제)
+	LikeID     int64     `gorm:"primaryKey;autoIncrement"`
+	UserID     int64     `gorm:"not null"`
+	MatchingID int64     `gorm:"not null"`
+	LikedAt    time.Time `gorm:"autoCreateTime"`
+	User       User      `gorm:"foreignKey:UserID"`
+	Matching   Matching  `gorm:"constraint:OnDelete:CASCADE;"`
 }
