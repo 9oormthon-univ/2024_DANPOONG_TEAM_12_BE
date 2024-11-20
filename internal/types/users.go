@@ -21,7 +21,7 @@ type User struct {
 
 // Interest 구조체는 유저의 관심사를 나타냅니다.
 type Interest struct {
-	InterestID int64  `gorm:"primaryKey;autoIncrement"`  // 관심사 ID, 자동 증가 및 기본 키
-	Name       string `gorm:"size:100;not null"`         // 관심사 이름, 최대 100자, 필수 입력
-	Users      []User `gorm:"many2many:users_interests"` // 관심사를 가진 유저들
+	InterestID int64  `gorm:"primaryKey;autoIncrement"` // 관심사 ID, 자동 증가 및 기본 키
+	Name       string `gorm:"size:100;not null"`        // 관심사 이름, 최대 100자, 필수 입력
+	Users      []User `gorm:"many2many:user_interest"`  // 관심사를 가진 유저들
 }

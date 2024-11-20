@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/config"
+	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/db"
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/domain/ai"
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/domain/auth"
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/domain/carpools"
@@ -32,18 +33,18 @@ type Repository struct {
 func SetRepository(cfg *config.Config) (*Repository, error) {
 	r := &Repository{}
 	r.DB = r.ConnectToDB(cfg)
-
-	// err := db.ResetDatabase(r.DB)
+	// 리로드시 테이블 모두 삭제
+	err := db.ResetDatabase(r.DB)
 	if r.DB == nil {
 		return nil, fmt.Errorf("failed to connect to the database")
 	}
 
 	// AutoMigrate를 사용하여 테이블 생성
-	// err = initializeTables(r.DB)
-	// if err != nil {
-	// 	log.Println(err)
-	// 	return nil, fmt.Errorf("데이터베이스 테이블 초기화 실패 :%w", err)
-	// }
+	err = initializeTables(r.DB)
+	if err != nil {
+		log.Println(err)
+		return nil, fmt.Errorf("데이터베이스 테이블 초기화 실패 :%w", err)
+	}
 
 	log.Println("테이블 초기화 성공!!")
 

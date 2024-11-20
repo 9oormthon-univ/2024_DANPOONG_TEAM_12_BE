@@ -23,7 +23,7 @@ func SetCoursesController(api *gin.RouterGroup, service types.CoursesService) *C
 }
 
 func (c *CoursesController) RecommendCourses(ctx *gin.Context) {
-
+	// 관심사, 위치 -> ai 코스 추천
 }
 
 func (c *CoursesController) GetMyCourses(ctx *gin.Context) {

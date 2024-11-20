@@ -1,6 +1,8 @@
 package regions
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type RegionsRepository struct {
 	DB *gorm.DB
