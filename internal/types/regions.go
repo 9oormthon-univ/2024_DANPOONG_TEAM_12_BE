@@ -2,7 +2,10 @@ package types
 
 import "time"
 
-type RegionsService interface {
+type RegionsService interface{}
+type ContentsService interface {
+	GetAllContents() ([]Content, error)
+	GetContentById(contentId int) (*Content, error)
 }
 
 // LocalInfo 구조체는 지역 정보를 나타냅니다.
