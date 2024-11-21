@@ -58,7 +58,7 @@ func (r *regionsService) GetareaBasedList(areaCode types.AreaCode, contentTypeId
 	}
 	log.Println(apiKey)
 	// Query 파라미터 설정
-	v.Set("numOfRows", "20")            // 데이터 개수
+	v.Set("numOfRows", "1")             // 데이터 개수
 	v.Set("pageNo", "1")                // 페이지 번호
 	v.Set("MobileOS", "ETC")            // OS 종류
 	v.Set("MobileApp", "TestApp")       // 앱 이름
@@ -112,6 +112,7 @@ func (r *regionsService) GetDetailCommon(contentID string) (*types.DetailCommonR
 	v.Set("overviewYN", "Y")
 	v.Set("catcodeYN", "Y")
 	v.Set("areacodeYN", "Y")
+	v.Set("defaultYN", "Y")
 
 	// 최종 URL 생성
 	finalURL := fmt.Sprintf("%s?%s&serviceKey=%s", types.BASE_URL_DETAIL_COMMON, v.Encode(), apiKey)

@@ -161,3 +161,14 @@ const (
 	ContentTypeShopping      ContentType = "38" // 쇼핑
 	ContentTypeFood          ContentType = "39" // 음식
 )
+
+var ContentTypes = []ContentType{
+	ContentTypeTourism,
+	ContentTypeCulture,
+	ContentTypeFestival,
+	ContentTypeTravelCourse,
+	ContentTypeLeisure,
+	ContentTypeAccommodation,
+	ContentTypeShopping,
+	ContentTypeFood,
+}
