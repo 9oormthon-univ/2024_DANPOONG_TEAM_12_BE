@@ -3,7 +3,10 @@ package types
 import "time"
 
 type RegionsService interface {
-	GetareaBasedList(areaCode AreaCode) ([]*AreaBasedListRes, error)
+	GetareaBasedList(areaCode AreaCode, contentTypeId ContentType) ([]*AreaBasedListRes, error)
+	GetDetailCommon(contentID string) (*DetailCommonRes, error)
+	GetAreaNameByCode(areaCode AreaCode) string
+	GetContentTypeNameByCode(contentType ContentType) string
 }
 
 // LocalInfo 구조체는 지역 정보를 나타냅니다.
@@ -142,6 +145,11 @@ const (
 	Gyeongnam AreaCode = "38" // 경상남도
 	Jeju      AreaCode = "39" // 제주특별자치도
 )
+
+var AreaCodes = []AreaCode{
+	Seoul, Incheon, Daejeon, Daegu, Gwangju, Busan, Ulsan, Sejong,
+	Gyeonggi, Gangwon, Chungbuk, Chungnam, Jeonbuk, Jeonnam, Gyeongbuk, Gyeongnam, Jeju,
+}
 
 const (
 	ContentTypeTourism       ContentType = "12" // 관광지
