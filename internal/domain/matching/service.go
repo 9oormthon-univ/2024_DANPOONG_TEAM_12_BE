@@ -6,9 +6,12 @@ type matchingService struct {
 	matchingRepository *MatchingRepository
 }
 
-func SetMatchingService(repository *MatchingRepository) types.MatchingService {
-	r := &matchingService{
+func SetMatchingService(repository *MatchingRepository) *matchingService {
+	return &matchingService{
 		matchingRepository: repository,
 	}
-	return r
+}
+
+func (s *matchingService) GetTopLikeMatchingPosts(limit int) ([]types.MatchingTopLikesResponseDTO, error) {
+	return s.matchingRepository.GetTopLikedMatchingPosts(limit)
 }

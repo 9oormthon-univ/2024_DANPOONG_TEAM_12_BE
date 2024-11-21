@@ -1,8 +1,12 @@
 package types
 
-import "time"
+import (
+	"time"
+)
 
-type MatchingService interface{}
+type MatchingService interface {
+	GetTopLikeMatchingPosts(limit int) ([]MatchingTopLikesResponseDTO, error)
+}
 
 // Matching 구조체는 매칭 정보를 나타냅니다.
 type Matching struct {
@@ -14,8 +18,9 @@ type Matching struct {
 	UserID       int64                 `gorm:"not null"`
 	Destination  string                `gorm:"size:100;not null"`
 	Date         time.Time             `gorm:"type:date;not null"`
-	StartTime    *time.Time            `gorm:"type:time"`
-	EndTime      *time.Time            `gorm:"type:time"`
+	StartTime    *time.Time            `gorm:"type:time;default:null"`
+	EndTime      *time.Time            `gorm:"type:time;default:null"`
+	Status       string                `gorm:"type:text"`
 	CreatedAt    time.Time             `gorm:"autoCreateTime"`
 	UpdatedAt    time.Time             `gorm:"autoUpdateTime"`
 	User         User                  `gorm:"foreignKey:UserID;references:UserID"`
@@ -48,4 +53,12 @@ type MatchingLike struct {
 	LikedAt    time.Time `gorm:"autoCreateTime"`
 	User       User      `gorm:"foreignKey:UserID"`
 	Matching   Matching  `gorm:"constraint:OnDelete:CASCADE;"`
+}
+
+type MatchingTopLikesResponseDTO struct {
+	MatchingID      int    `json:"matching_id"`
+	Title           string `json:"title"`
+	ImageURL        string `json:"image_url"`
+	MatchingDetails string `json:"matching_details"`
+	LikesCount      int    `json:"likes_count"`
 }

@@ -8,6 +8,10 @@ type RegionsService interface {
 	GetAreaNameByCode(areaCode AreaCode) string
 	GetContentTypeNameByCode(contentType ContentType) string
 }
+type ContentsService interface {
+	GetAllContents() ([]Content, error)
+	GetContentById(contentId int) (*Content, error)
+}
 
 // LocalInfo 구조체는 지역 정보를 나타냅니다.
 type LocalInfo struct {
