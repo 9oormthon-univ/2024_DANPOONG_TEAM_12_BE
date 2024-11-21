@@ -12,3 +12,7 @@ func SetCarpoolsService(repository *CarpoolsRepository) types.CarpoolsService {
 	}
 	return r
 }
+
+func (service *CarpoolsService) GetTopLikedCarpools(limit int) ([]types.CarpoolTopLikesResponseDTO, error) {
+	return service.carpoolsRepository.GetTopLikedCarpools(limit)
+}
