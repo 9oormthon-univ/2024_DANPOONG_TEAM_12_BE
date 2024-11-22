@@ -101,30 +101,30 @@ type AreaBasedListRes struct {
 
 // http://apis.data.go.kr/B551011/KorService1/detailCommon1
 type DetailCommonRes struct {
-	ContentID     string  `json:"contentid"`     // 콘텐츠 ID
-	ContentTypeID string  `json:"contenttypeid"` // 콘텐츠 타입 ID
-	Title         string  `json:"title"`         // 제목
-	CreatedTime   string  `json:"createdtime"`   // 생성 시간
-	ModifiedTime  string  `json:"modifiedtime"`  // 수정 시간
-	Tel           string  `json:"tel"`           // 전화번호
-	TelName       string  `json:"telname"`       // 전화번호 이름
-	Homepage      string  `json:"homepage"`      // 홈페이지
-	BookTour      string  `json:"booktour"`      // 예약 여부
-	FirstImage    string  `json:"firstimage"`    // 첫 번째 대표 이미지
-	FirstImage2   string  `json:"firstimage2"`   // 두 번째 대표 이미지
-	CpyrhtDivCd   string  `json:"cpyrhtDivCd"`   // 저작권 코드
-	AreaCode      string  `json:"areacode"`      // 지역 코드
-	SigunguCode   string  `json:"sigungucode"`   // 시군구 코드
-	Cat1          string  `json:"cat1"`          // 대분류 카테고리 코드
-	Cat2          string  `json:"cat2"`          // 중분류 카테고리 코드
-	Cat3          string  `json:"cat3"`          // 소분류 카테고리 코드
-	Addr1         string  `json:"addr1"`         // 기본 주소
-	Addr2         string  `json:"addr2"`         // 추가 주소
-	ZipCode       string  `json:"zipcode"`       // 우편번호
-	MapX          float64 `json:"mapx,string"`   // X 좌표 (경도)
-	MapY          float64 `json:"mapy,string"`   // Y 좌표 (위도)
-	MLevel        int     `json:"mlevel,string"` // 지도 확대 수준
-	Overview      string  `json:"overview"`
+	ContentID     string `json:"contentid"`
+	ContentTypeID string `json:"contenttypeid"`
+	Title         string `json:"title"`
+	CreatedTime   string `json:"createdtime,omitempty"`
+	ModifiedTime  string `json:"modifiedtime,omitempty"`
+	Tel           string `json:"tel,omitempty"`
+	TelName       string `json:"telname,omitempty"`
+	Homepage      string `json:"homepage,omitempty"`
+	BookTour      string `json:"booktour,omitempty"`
+	FirstImage    string `json:"firstimage,omitempty"`
+	FirstImage2   string `json:"firstimage2,omitempty"`
+	CpyrhtDivCd   string `json:"cpyrhtDivCd,omitempty"`
+	AreaCode      string `json:"areacode,omitempty"`
+	SigunguCode   string `json:"sigungucode,omitempty"`
+	Cat1          string `json:"cat1,omitempty"`
+	Cat2          string `json:"cat2,omitempty"`
+	Cat3          string `json:"cat3,omitempty"`
+	Addr1         string `json:"addr1,omitempty"`
+	Addr2         string `json:"addr2,omitempty"`
+	ZipCode       string `json:"zipcode,omitempty"`
+	MapX          string `json:"mapx,omitempty"`
+	MapY          string `json:"mapy,omitempty"`
+	MLevel        string `json:"mlevel,omitempty"`
+	Overview      string `json:"overview,omitempty"`
 }
 
 const (

@@ -21,7 +21,7 @@ func SetAIController(api *gin.RouterGroup, service types.AIService) *AIControlle
 }
 
 func (a *AIController) RecommendCoursesTest(ctx *gin.Context) {
-	var req types.RecommendCourseRequest
+	var req types.RecommendCourseReq
 	// 관심사와 위치를 받아온다
 	// 관심사는 Tour API와 맵핑은 안 되므로
 	err := ctx.ShouldBindJSON(&req)

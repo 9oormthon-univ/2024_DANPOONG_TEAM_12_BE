@@ -52,7 +52,7 @@ func (a *aiService) DefineFunctions() []openai.FunctionDefinition {
 					"interests": {
 						Type: jsonschema.String,
 						Description: fmt.Sprintf(
-							"사용자가 자유롭게 입력한 관심사 목록입니다. 예: '문화시설 관광지'. AI는 이를 다음의 Tour API 카테고리로 매핑해야 합니다: [%s].",
+							"사용자가 자유롭게 입력한 관심사 목록입니다. 다음과 같이 입력해 관심사 마다 공백으로 구분할거야 -> '문화시설 관광지'. AI는 이를 다음의 Tour API 카테고리로 매핑해야 합니다: [%s].",
 							strings.Join(types.ContentTypeNames, ", "),
 						),
 					},
@@ -63,7 +63,7 @@ func (a *aiService) DefineFunctions() []openai.FunctionDefinition {
 	}
 }
 
-func (a *aiService) RecommendCourses(req *types.RecommendCourseRequest) ([]*types.TravelRecommendation, error) {
+func (a *aiService) RecommendCourses(req *types.RecommendCourseReq) ([]*types.CourseRecommendationAIRes, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
@@ -78,7 +78,7 @@ func (a *aiService) RecommendCourses(req *types.RecommendCourseRequest) ([]*type
 				`당신은 여행 코스를 추천하는 어시스턴트입니다.
 사용자가 입력한 관심사를 다음의 Tour API 카테고리로 값을 바꿔서 함수 매개변수로 사용해야 합니다: [%s].
 제공된 데이터를 기반으로 시간 순서대로 여행 코스를 생성하고, 각 장소의 시작 시간과 끝 시간을 자동으로 배정하세요.
-응답은 배열 형태의 JSON으로만 반환해야 하며, 각 장소는 'title', 'description', 'address', 'start_time', 'end_time', 'type'을 포함해야 합니다.
+응답은 배열 형태의 JSON으로만 반환해야 하며, 각 장소는 'title', 'description', 'address', 'start_time', 'end_time', 'type', 'content_id'을 포함해야 합니다.
 응답은 반드시 배열 형태의 JSON으로만 시작하고 끝나야 합니다. 추가적인 텍스트나 설명을 포함하지 마세요.
 예를 들어:
 [
@@ -89,6 +89,7 @@ func (a *aiService) RecommendCourses(req *types.RecommendCourseRequest) ([]*type
     "start_time": "09:00",
     "end_time": "10:30",
     "type": "관광지"
+	"content_id": 331345",
   }
 ]`,
 				strings.Join(types.ContentTypeNames, ", "),
@@ -112,7 +113,7 @@ func (a *aiService) RecommendCourses(req *types.RecommendCourseRequest) ([]*type
 	var err error
 	for attempt := 1; attempt <= maxRetries; attempt++ {
 		res, err = a.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-			Model:        openai.GPT4Turbo, // 올바른 모델 이름 사용
+			Model:        openai.GPT4Turbo,
 			Messages:     messages,
 			Functions:    functions,
 			FunctionCall: "auto",
@@ -168,7 +169,7 @@ func (a *aiService) RecommendCourses(req *types.RecommendCourseRequest) ([]*type
 		}
 
 		// 최종 응답 처리
-		var finalRecommendations []*types.TravelRecommendation
+		var finalRecommendations []*types.CourseRecommendationAIRes
 
 		// JSON만 추출하기 위해 정규 표현식 사용
 		re := regexp.MustCompile(`(?s)\[.*\]`)
@@ -189,14 +190,14 @@ func (a *aiService) RecommendCourses(req *types.RecommendCourseRequest) ([]*type
 	return nil, fmt.Errorf("AI가 함수 호출을 수행하지 않았습니다")
 }
 
-// Tour API 데이터를 반환하는 함수
+// Tour API 데이터를 반환하는 함수(AI가 매개변수 입력)
 func (a *aiService) GetTourRecommendations(region string, interests []string) (string, error) {
 	areaCode := a.RegionsService.GetAreaCodeByName(region)
 	if areaCode == "" {
 		return "", fmt.Errorf("지역 코드 매핑 실패")
 	}
 
-	var allRecommendations []*types.TravelRecommendation
+	var allRecommendations []*types.CourseRecommendationAIRes
 	for _, interest := range interests {
 		log.Printf("매핑된 관심사: %s", interest)
 		contentTypeID := a.RegionsService.GetContentTypeCodeByName(interest)
@@ -216,18 +217,19 @@ func (a *aiService) GetTourRecommendations(region string, interests []string) (s
 		for _, area := range areaList {
 			detail, err := a.RegionsService.GetDetailCommon(area.ContentID)
 			if err != nil {
-				log.Printf("상세 정보 가져오기 실패: %s", area.ContentID)
+				log.Printf("상세 정보 가져오기 실패: %s", err)
 				continue
 			}
 
 			// 데이터 추가
-			allRecommendations = append(allRecommendations, &types.TravelRecommendation{
+			allRecommendations = append(allRecommendations, &types.CourseRecommendationAIRes{
 				Title:       detail.Title,
 				Description: detail.Overview,
 				Address:     detail.Addr1,
 				StartTime:   "", // 시간은 AI에서 처리
 				EndTime:     "",
 				Type:        "", // 타입은 AI에서 처리
+				ContentID:   detail.ContentID,
 			})
 		}
 	}
@@ -241,6 +243,6 @@ func (a *aiService) GetTourRecommendations(region string, interests []string) (s
 	return string(recommendationsJSON), nil
 }
 
-func (a *aiService) InjectInfoService(service types.RegionsService) {
+func (a *aiService) InjectRegionService(service types.RegionsService) {
 	a.RegionsService = service
 }

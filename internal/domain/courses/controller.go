@@ -19,14 +19,43 @@ func SetCoursesController(api *gin.RouterGroup, service types.CoursesService) *C
 
 	api.GET("/courses/me", c.GetMyCourses)
 	api.POST("/courses/ai", c.RecommendCourses)
+	api.POST("/courses", c.PostMyCourses)
 	return c
 }
 
 func (c *CoursesController) RecommendCourses(ctx *gin.Context) {
-	// 관심사, 위치 -> ai 코스 추천
+	var req types.RecommendCourseReq
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"type":    "error",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	course, err := c.coursesService.RecommendCourses(&req)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"type":    "error",
+			"message": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"type":    "success",
+		"message": "코스 추천 성공",
+		"data":    course,
+	})
+
 }
 
 func (c *CoursesController) GetMyCourses(ctx *gin.Context) {
+
+}
+
+func (c *CoursesController) PostMyCourses(ctx *gin.Context) {
 
 }
 

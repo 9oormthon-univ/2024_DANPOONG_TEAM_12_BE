@@ -113,6 +113,9 @@ func (r *regionsService) GetDetailCommon(contentID string) (*types.DetailCommonR
 	v.Set("catcodeYN", "Y")
 	v.Set("areacodeYN", "Y")
 	v.Set("defaultYN", "Y")
+	v.Set("firstImageYN", "Y")
+	v.Set("mapinfoYN", "Y")
+	v.Set("addrinfoYN", "Y")
 
 	// 최종 URL 생성
 	finalURL := fmt.Sprintf("%s?%s&serviceKey=%s", types.BASE_URL_DETAIL_COMMON, v.Encode(), apiKey)

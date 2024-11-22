@@ -33,7 +33,9 @@ func SetService(repository *repository.Repository) *Service {
 	coursesService := courses.SetCoursesService(repository.CoursesRepository)
 
 	// 의존성 주입
-	aiService.InjectInfoService(regionsService)
+	aiService.InjectRegionService(regionsService)
+	coursesService.InjectAIService(aiService)
+	coursesService.InjectRegionService(regionsService)
 
 	s := &Service{
 		AuthService:     authService,
