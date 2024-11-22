@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/types"
@@ -17,9 +18,10 @@ import (
 type aiService struct {
 	aiRepository *AIRepository
 	types.RegionsService
-	client        *openai.Client
-	fineTuneModel string
+	client *openai.Client
 }
+
+// TravelRecommendation 구조체에 Type 필드 추가
 
 func SetAIService(repository *AIRepository) types.AIService {
 	a := &aiService{
@@ -35,165 +37,208 @@ func SetAIService(repository *AIRepository) types.AIService {
 	return a
 }
 
-func (a *aiService) RequestFineTuning() error {
-	f, err := a.client.CreateFile(context.TODO(), openai.FileRequest{
-		FilePath: types.TrainingDataPath,
-		Purpose:  "fine-tune",
-	})
-	if err != nil {
-		return fmt.Errorf("Create file error: %v\n", err)
-	}
-
-	_, err = os.Stat(types.TrainingDataPath)
-	if os.IsNotExist(err) {
-		fmt.Println("output.jsonl 파일이 현재 디렉토리에 존재하지 않습니다.")
-	}
-
-	if err != nil {
-		return fmt.Errorf("Upload JSONL file error: %v\n", err)
-	}
-
-	fineTuningJob, err := a.client.CreateFineTuningJob(context.TODO(), openai.FineTuningJobRequest{
-		TrainingFile: f.ID,
-		Model:        openai.GPT4oMini20240718,
-	})
-	if err != nil {
-		return fmt.Errorf("Creating new fine-tune model error: %v\n", err)
-	}
-	for {
-		fineTuningJob, err = a.client.RetrieveFineTuningJob(context.TODO(), fineTuningJob.ID)
-		if err != nil {
-			log.Printf("Getting fine-tune model error: %v\n", err)
-			return err
-		}
-
-		if fineTuningJob.Status == "succeeded" {
-			fmt.Println("Fine-tuned model created successfully:", fineTuningJob.FineTunedModel)
-			a.fineTuneModel = fineTuningJob.FineTunedModel
-			return nil
-		}
-
-		fmt.Println("Waiting for fine-tuning job to complete...")
-		time.Sleep(10 * time.Second)
+func (a *aiService) DefineFunctions() []openai.FunctionDefinition {
+	return []openai.FunctionDefinition{
+		{
+			Name:        "get_tour_recommendations",
+			Description: "사용자의 지역, 관심사, 시간대에 맞춰 Tour API 카테고리로 매핑한 데이터를 반환합니다.",
+			Parameters: &jsonschema.Definition{
+				Type: jsonschema.Object,
+				Properties: map[string]jsonschema.Definition{
+					"region": {
+						Type:        jsonschema.String,
+						Description: "사용자가 방문하고 싶은 지역 (예: 전라북도)",
+					},
+					"interests": {
+						Type: jsonschema.String,
+						Description: fmt.Sprintf(
+							"사용자가 자유롭게 입력한 관심사 목록입니다. 예: '문화시설 관광지'. AI는 이를 다음의 Tour API 카테고리로 매핑해야 합니다: [%s].",
+							strings.Join(types.ContentTypeNames, ", "),
+						),
+					},
+				},
+				Required: []string{"region", "interests"},
+			},
+		},
 	}
 }
 
-// Start of Selection
-
-func (a *aiService) RecommendCourses(req *types.RecommendCourseRequest) (*types.AnswerResponse, error) {
-
-	ctx, cancel := context.WithTimeout(context.TODO(), 30*time.Second)
+func (a *aiService) RecommendCourses(req *types.RecommendCourseRequest) ([]*types.TravelRecommendation, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	var result *types.AnswerResponse
-	schema, err := jsonschema.GenerateSchemaForType(result)
-	if err != nil {
-		return nil, fmt.Errorf("Schema generation error %w\n", err)
-	}
+	// 함수 정의 가져오기
+	functions := a.DefineFunctions()
 
+	// AI 요청 메시지
 	messages := []openai.ChatCompletionMessage{
 		{
-			Role:    openai.ChatMessageRoleSystem,
-			Content: "사용자 관심사에 맞는 지역 여행 코스를 추천해주는 서비스입니다",
+			Role: openai.ChatMessageRoleSystem,
+			Content: fmt.Sprintf(
+				`당신은 여행 코스를 추천하는 어시스턴트입니다.
+사용자가 입력한 관심사를 다음의 Tour API 카테고리로 값을 바꿔서 함수 매개변수로 사용해야 합니다: [%s].
+제공된 데이터를 기반으로 시간 순서대로 여행 코스를 생성하고, 각 장소의 시작 시간과 끝 시간을 자동으로 배정하세요.
+응답은 배열 형태의 JSON으로만 반환해야 하며, 각 장소는 'title', 'description', 'address', 'start_time', 'end_time', 'type'을 포함해야 합니다.
+응답은 반드시 배열 형태의 JSON으로만 시작하고 끝나야 합니다. 추가적인 텍스트나 설명을 포함하지 마세요.
+예를 들어:
+[
+  {
+    "title": "장소 이름",
+    "description": "장소 설명",
+    "address": "주소",
+    "start_time": "09:00",
+    "end_time": "10:30",
+    "type": "관광지"
+  }
+]`,
+				strings.Join(types.ContentTypeNames, ", "),
+			),
 		},
 		{
 			Role: openai.ChatMessageRoleUser,
-			Content: fmt.Sprintf("나의 관심사는 %s이고, 위치는 %s이야 조건에 맞게 지역 여행 코스를 추천해줘.",
+			Content: fmt.Sprintf(
+				"지역: %s, 관심사: %s, 여행 시간: %s부터 %s까지. 관심사를 위의 카테고리로 바꿔서 적합한 장소를 추천해주세요.",
+				a.RegionsService.GetAreaNameByCode(types.AreaCode(req.AreaCode)),
 				req.Interests,
-				a.RegionsService.GetAreaNameByCode(req.AreaCode),
+				req.StartTime,
+				req.EndTime,
 			),
 		},
 	}
 
-	res, err := a.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model:    "ft:gpt-4o-2024-08-06:personal::ASEB50GB",
-		Messages: messages,
-		ResponseFormat: &openai.ChatCompletionResponseFormat{
-
-			Type: openai.ChatCompletionResponseFormatTypeJSONSchema,
-			JSONSchema: &openai.ChatCompletionResponseFormatJSONSchema{
-				Name:   "RegionalTravelInfo",
-				Schema: schema,
-			},
-		},
-	})
-
+	// AI 요청 및 재시도 로직 추가
+	const maxRetries = 3
+	var res openai.ChatCompletionResponse
+	var err error
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		res, err = a.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
+			Model:        openai.GPT4Turbo, // 올바른 모델 이름 사용
+			Messages:     messages,
+			Functions:    functions,
+			FunctionCall: "auto",
+		})
+		if err == nil {
+			break
+		}
+		log.Printf("AI 요청 시도 %d/%d 실패: %v", attempt, maxRetries, err)
+		time.Sleep(2 * time.Second) // 재시도 전 대기
+	}
 	if err != nil {
-		return nil, fmt.Errorf("Create completion error %w\n", err)
-	}
-	if err := schema.Unmarshal(res.Choices[0].Message.Content, &result); err != nil {
-		return nil, fmt.Errorf("Unmarshal error %w\n", err)
+		return nil, fmt.Errorf("AI 요청 오류: %w", err)
 	}
 
-	return result, nil
+	// 함수 호출 처리
+	message := res.Choices[0].Message
+
+	if message.FunctionCall != nil {
+		var args struct {
+			Region    string `json:"region"`
+			Interests string `json:"interests"`
+		}
+		if err := json.Unmarshal([]byte(message.FunctionCall.Arguments), &args); err != nil {
+			return nil, fmt.Errorf("함수 인자 파싱 오류: %w", err)
+		}
+
+		// 관심사 매핑 로그
+		log.Printf("%s -> %s", req.Interests, args.Interests)
+
+		// 관심사 매핑: 문자열을 공백으로 분리하여 배열로 변환
+		interests := strings.Fields(args.Interests)
+
+		// Tour API 데이터 호출
+		recommendations, err := a.GetTourRecommendations(args.Region, interests)
+		if err != nil {
+			return nil, fmt.Errorf("Tour API 호출 오류: %w", err)
+		}
+
+		// Tour API 결과를 AI에게 다시 전달
+		messages = append(messages, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleFunction,
+			Name:    "get_tour_recommendations",
+			Content: recommendations,
+		})
+
+		// AI가 최종 코스를 생성하도록 요청
+		finalRes, err := a.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
+			Model:    openai.GPT4Turbo, // 올바른 모델 이름 사용
+			Messages: messages,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("최종 AI 응답 오류: %w", err)
+		}
+
+		// 최종 응답 처리
+		var finalRecommendations []*types.TravelRecommendation
+
+		// JSON만 추출하기 위해 정규 표현식 사용
+		re := regexp.MustCompile(`(?s)\[.*\]`)
+		jsonMatch := re.FindString(finalRes.Choices[0].Message.Content)
+		if jsonMatch == "" {
+			log.Printf("JSON 형식이 포함되지 않은 응답: %s", finalRes.Choices[0].Message.Content)
+			return nil, fmt.Errorf("응답에 JSON 형식이 포함되지 않았습니다")
+		}
+
+		if err := json.Unmarshal([]byte(jsonMatch), &finalRecommendations); err != nil {
+			log.Printf("JSON 파싱 오류 데이터: %s", jsonMatch)
+			return nil, fmt.Errorf("최종 JSON 파싱 오류: %w", err)
+		}
+
+		return finalRecommendations, nil
+	}
+
+	return nil, fmt.Errorf("AI가 함수 호출을 수행하지 않았습니다")
 }
 
-func (a *aiService) GenerateTrainingData() error {
+// Tour API 데이터를 반환하는 함수
+func (a *aiService) GetTourRecommendations(region string, interests []string) (string, error) {
+	areaCode := a.RegionsService.GetAreaCodeByName(region)
+	if areaCode == "" {
+		return "", fmt.Errorf("지역 코드 매핑 실패")
+	}
 
-	dir, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	path := filepath.Join(dir, "/internal/data/output.jsonl")
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	// 관심사 하나당 관심사에 맞는 지역 정보 2개씩 생성
-	var chatFormatList []*types.ChatFormat
-	for _, interest := range types.ContentTypes {
-		for _, areaCode := range types.AreaCodes {
-			log.Println("데이터 생성 중.....")
-			areaList, err := a.RegionsService.GetareaBasedList(areaCode, interest)
+	var allRecommendations []*types.TravelRecommendation
+	for _, interest := range interests {
+		log.Printf("매핑된 관심사: %s", interest)
+		contentTypeID := a.RegionsService.GetContentTypeCodeByName(interest)
+		if contentTypeID == "" {
+			log.Printf("관심사 '%s'에 대한 콘텐츠 타입 ID 매핑 실패", interest)
+			continue
+		}
+
+		// 관심사별 데이터 호출
+		areaList, err := a.RegionsService.GetAreaBasedList(areaCode, contentTypeID)
+		if err != nil {
+			log.Printf("'%s'에 대한 데이터 가져오기 오류: %v", interest, err)
+			continue
+		}
+
+		// 상세 데이터 가져오기
+		for _, area := range areaList {
+			detail, err := a.RegionsService.GetDetailCommon(area.ContentID)
 			if err != nil {
-				return err
+				log.Printf("상세 정보 가져오기 실패: %s", area.ContentID)
+				continue
 			}
 
-			for _, area := range areaList {
-				detail, err := a.RegionsService.GetDetailCommon(area.ContentID)
-				if err != nil {
-					return err
-				}
-				if detail.Overview == "" {
-					log.Println("여행지 아님 : ", detail.Title, detail.ContentID)
-					continue
-				}
-				// 숙박 정보, 관심사와 위치에 따른 정보 2~3개
-				log.Printf("areaCode : %s", detail.AreaCode)
-				log.Printf("contentid %s : ", detail.ContentID)
-				log.Printf("contenttypeid : %s", detail.ContentTypeID)
-				msg := &types.ChatFormat{
-					Messages: []*types.ChatMessage{
-						{
-							Role:    openai.ChatMessageRoleSystem,
-							Content: "사용자 관심사에 맞게 Tour API 내의 관광지, 문화시설, 축제공연행사, 여행코스, 레포츠, 숙박, 쇼핑, 음식점을 사용자에게 제공하는 서비스입니다. 해당 API 외의 정보는 제공하지 않으며, 학습한 데이터와 Tour API 내의 데이터만으로 추천을 진행합니다.",
-						},
-						{
-							Role: openai.ChatMessageRoleUser,
-							Content: fmt.Sprintf("내가 가고 싶은 지역은 %s이고, 관심사는 %s이야. 조건에 맞게 지역 여행지(관광지, 문화시설, 축제공연행사, 여행코스, 레포츠, 숙박, 쇼핑, 음식점)를 추천해줘",
-								a.RegionsService.GetAreaNameByCode(types.AreaCode(detail.AreaCode)),
-								a.RegionsService.GetContentTypeNameByCode(types.ContentType(detail.ContentTypeID))),
-						},
-						{
-							Role:    openai.ChatMessageRoleAssistant,
-							Content: fmt.Sprintf("타이틀: %s, 간단한 소개: %s", detail.Title, detail.Overview),
-						},
-					},
-				}
-				chatFormatList = append(chatFormatList, msg)
-
-				data, err := json.Marshal(msg)
-				if err != nil {
-					return fmt.Errorf("json 마샬 오류 : %w\n", err)
-				}
-				if _, err = f.WriteString(fmt.Sprintf("%s\n", data)); err != nil {
-					return fmt.Errorf("jsonl 파일 입력 오류 : %w\n", err)
-				}
-			}
+			// 데이터 추가
+			allRecommendations = append(allRecommendations, &types.TravelRecommendation{
+				Title:       detail.Title,
+				Description: detail.Overview,
+				Address:     detail.Addr1,
+				StartTime:   "", // 시간은 AI에서 처리
+				EndTime:     "",
+				Type:        "", // 타입은 AI에서 처리
+			})
 		}
 	}
-	return nil
+
+	// JSON 형태로 반환
+	recommendationsJSON, err := json.Marshal(allRecommendations)
+	if err != nil {
+		return "", fmt.Errorf("JSON 변환 오류: %w", err)
+	}
+
+	return string(recommendationsJSON), nil
 }
 
 func (a *aiService) InjectInfoService(service types.RegionsService) {

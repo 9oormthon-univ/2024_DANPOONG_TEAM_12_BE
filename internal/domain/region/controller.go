@@ -22,7 +22,7 @@ func SetRegionsController(api *gin.RouterGroup, service types.RegionsService) *R
 }
 
 func (r *RegionsController) GetareaBasedList(ctx *gin.Context) {
-	result, err := r.regionsService.GetareaBasedList(types.Busan, "")
+	result, err := r.regionsService.GetAreaBasedList(types.Busan, "")
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "error",

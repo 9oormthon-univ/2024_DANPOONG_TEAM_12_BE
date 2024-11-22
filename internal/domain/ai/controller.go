@@ -16,43 +16,14 @@ func SetAIController(api *gin.RouterGroup, service types.AIService) *AIControlle
 		aiService: service,
 	}
 	// 핸들러 등록
-	api.POST("/ai/test/data", c.GenerateTrainingData)
-	api.POST("/ai/test/train", c.TrainingModel)
 	api.POST("/ai/test/course", c.RecommendCoursesTest)
 	return c
 }
 
-func (a *AIController) GenerateTrainingData(ctx *gin.Context) {
-	err := a.aiService.GenerateTrainingData()
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"type":    "error",
-			"message": err,
-		})
-		return
-	}
-	ctx.JSON(http.StatusInternalServerError, gin.H{
-		"type": "success",
-	})
-}
-
-func (a *AIController) TrainingModel(ctx *gin.Context) {
-	err := a.aiService.RequestFineTuning()
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"type":    "error",
-			"message": err.Error(),
-		})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{
-		"type": "success",
-	})
-}
-
 func (a *AIController) RecommendCoursesTest(ctx *gin.Context) {
 	var req types.RecommendCourseRequest
-
+	// 관심사와 위치를 받아온다
+	// 관심사는 Tour API와 맵핑은 안 되므로
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -64,7 +35,7 @@ func (a *AIController) RecommendCoursesTest(ctx *gin.Context) {
 
 	result, err := a.aiService.RecommendCourses(&req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		ctx.JSON(http.StatusInternalServerError, gin.H{ // 상태 코드 수정
 			"message": err.Error(),
 			"type":    "error",
 		})
@@ -76,5 +47,4 @@ func (a *AIController) RecommendCoursesTest(ctx *gin.Context) {
 		"type":    "success",
 		"data":    result,
 	})
-
 }

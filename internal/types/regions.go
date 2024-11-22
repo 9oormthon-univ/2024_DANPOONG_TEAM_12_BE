@@ -3,10 +3,12 @@ package types
 import "time"
 
 type RegionsService interface {
-	GetareaBasedList(areaCode AreaCode, contentTypeId ContentType) ([]*AreaBasedListRes, error)
+	GetAreaBasedList(areaCode AreaCode, contentTypeId ContentType) ([]*AreaBasedListRes, error)
 	GetDetailCommon(contentID string) (*DetailCommonRes, error)
 	GetAreaNameByCode(areaCode AreaCode) string
 	GetContentTypeNameByCode(contentType ContentType) string
+	GetAreaCodeByName(areaName string) AreaCode
+	GetContentTypeCodeByName(contentTypeName string) ContentType
 }
 type ContentsService interface {
 	GetAllContents() ([]Content, error)
@@ -166,7 +168,17 @@ const (
 	ContentTypeFood          ContentType = "39" // 음식
 )
 
-var ContentTypes = []ContentType{
+var ContentTypeNames = []string{
+	"관광지",
+	"문화시설",
+	"축제/공연/행사",
+	"레포츠",
+	"숙박",
+	"쇼핑",
+	"음식",
+}
+
+var ContentTypeCodes = []ContentType{
 	ContentTypeTourism,
 	ContentTypeCulture,
 	ContentTypeFestival,

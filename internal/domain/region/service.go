@@ -42,7 +42,7 @@ func SetRegionsService(repository *RegionsRepository) types.RegionsService {
 */
 
 // contentTypeID는 옵셔널로
-func (r *regionsService) GetareaBasedList(areaCode types.AreaCode, contentTypeId types.ContentType) ([]*types.AreaBasedListRes, error) {
+func (r *regionsService) GetAreaBasedList(areaCode types.AreaCode, contentTypeId types.ContentType) ([]*types.AreaBasedListRes, error) {
 	v := url.Values{}
 	if contentTypeId == "" {
 		v.Set("contentTypeId", "")
@@ -58,7 +58,7 @@ func (r *regionsService) GetareaBasedList(areaCode types.AreaCode, contentTypeId
 	}
 	log.Println(apiKey)
 	// Query 파라미터 설정
-	v.Set("numOfRows", "1")             // 데이터 개수
+	v.Set("numOfRows", "2")             // 데이터 개수
 	v.Set("pageNo", "1")                // 페이지 번호
 	v.Set("MobileOS", "ETC")            // OS 종류
 	v.Set("MobileApp", "TestApp")       // 앱 이름
@@ -173,6 +173,34 @@ func (r *regionsService) GetAreaNameByCode(areaCode types.AreaCode) string {
 	return ""
 }
 
+func (r *regionsService) GetAreaCodeByName(areaName string) types.AreaCode {
+	reverseTable := map[string]types.AreaCode{
+		"서울":      types.Seoul,     // 서울특별시
+		"인천":      types.Incheon,   // 인천광역시
+		"대전":      types.Daejeon,   // 대전광역시
+		"대구":      types.Daegu,     // 대구광역시
+		"광주":      types.Gwangju,   // 광주광역시
+		"부산":      types.Busan,     // 부산광역시
+		"울산":      types.Ulsan,     // 울산광역시
+		"세종":      types.Sejong,    // 세종특별자치시
+		"경기도":     types.Gyeonggi,  // 경기도
+		"강원도":     types.Gangwon,   // 강원도
+		"충청북도":    types.Chungbuk,  // 충청북도
+		"충청남도":    types.Chungnam,  // 충청남도
+		"전라북도":    types.Jeonbuk,   // 전라북도
+		"전라남도":    types.Jeonnam,   // 전라남도
+		"경상북도":    types.Gyeongbuk, // 경상북도
+		"경상남도":    types.Gyeongnam, // 경상남도
+		"제주특별자치도": types.Jeju,      // 제주특별자치도
+	}
+
+	if code, found := reverseTable[areaName]; found {
+		return code
+	}
+	log.Fatalf("유효하지 않은 areaName -> input : %s\n", areaName)
+	return ""
+}
+
 func (r *regionsService) GetContentTypeNameByCode(contentType types.ContentType) string {
 	contentTypeMap := map[types.ContentType]string{
 		types.ContentTypeTourism:       "관광지",
@@ -187,6 +215,24 @@ func (r *regionsService) GetContentTypeNameByCode(contentType types.ContentType)
 	if name, found := contentTypeMap[contentType]; found {
 		return name
 	}
-	log.Fatalf("유효하지 않은 contentid -> input : %s\n", contentType)
+	log.Printf("유효하지 않은 contentid -> input : %s\n", contentType)
+	return ""
+}
+
+func (r *regionsService) GetContentTypeCodeByName(contentTypeName string) types.ContentType {
+	reverseContentTypeMap := map[string]types.ContentType{
+		"관광지":      types.ContentTypeTourism,
+		"문화시설":     types.ContentTypeCulture,
+		"축제/공연/행사": types.ContentTypeFestival,
+		"여행코스":     types.ContentTypeTravelCourse,
+		"레포츠":      types.ContentTypeLeisure,
+		"숙박":       types.ContentTypeAccommodation,
+		"쇼핑":       types.ContentTypeShopping,
+		"음식":       types.ContentTypeFood,
+	}
+	if code, found := reverseContentTypeMap[contentTypeName]; found {
+		return code
+	}
+	log.Printf("유효하지 않은 contentTypeName -> input : %s\n", contentTypeName)
 	return ""
 }
