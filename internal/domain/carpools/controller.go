@@ -1,10 +1,11 @@
 package carpools
 
 import (
-	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/types"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/types"
+	"github.com/gin-gonic/gin"
 )
 
 type CarpoolsController struct {

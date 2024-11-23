@@ -40,7 +40,7 @@ type CarpoolLike struct {
 	UserID    int64     `gorm:"not null"`                                          // 유저 ID, 필수 입력
 	CarpoolID int64     `gorm:"not null"`                                          // 카풀 게시글 ID, 필수 입력
 	LikedAt   time.Time `gorm:"autoCreateTime"`                                    // 좋아요 생성 시간, 자동 생성
-	User      User      `gorm:"foreignKey:UserID";references:UserID`               // 유저와의 관계
+	User      User      `gorm:"foreignKey:UserID;references:UserID"`               // 유저와의 관계
 	Carpool   Carpool   `gorm:"foreignKey:CarpoolID;constraint:OnDelete:CASCADE;"` // 카풀 게시글과의 관계, 카풀 삭제 시 좋아요도 삭제
 }
 

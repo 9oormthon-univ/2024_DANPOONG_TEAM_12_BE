@@ -33,7 +33,7 @@ type Repository struct {
 func SetRepository(cfg *config.Config) (*Repository, error) {
 	r := &Repository{}
 	r.DB = r.ConnectToDB(cfg)
-
+	// 리로드시 테이블 모두 삭제
 	err := db.ResetDatabase(r.DB)
 	if r.DB == nil {
 		return nil, fmt.Errorf("failed to connect to the database")

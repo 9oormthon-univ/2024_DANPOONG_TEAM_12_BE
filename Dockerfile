@@ -28,12 +28,13 @@ FROM golang:1.23.2 AS dev
 WORKDIR /app
 
 # Swagger와 air 설치
-RUN go install github.com/swaggo/swag/cmd/swag@latest
+RUN go install github.com/swaggo/swag/cmd/swag@v1.8.11
 RUN go install github.com/air-verse/air@latest
 
 # 소스 코드 복사
 COPY . .
 
 # Swagger 문서 생성 후 air 실행
-CMD ["sh", "-c", "swag init && air"]
+CMD ["sh", "-c", "swag init --parseDependency --parseInternal && air"]
+
 

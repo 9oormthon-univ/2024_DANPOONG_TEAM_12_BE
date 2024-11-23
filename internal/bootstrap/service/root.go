@@ -32,6 +32,11 @@ func SetService(repository *repository.Repository) *Service {
 	regionsService := regions.SetRegionsService(repository.RegionsRepository)
 	coursesService := courses.SetCoursesService(repository.CoursesRepository)
 
+	// 의존성 주입
+	aiService.InjectRegionService(regionsService)
+	coursesService.InjectAIService(aiService)
+	coursesService.InjectRegionService(regionsService)
+
 	s := &Service{
 		AuthService:     authService,
 		CarpoolsService: carpoolsService,

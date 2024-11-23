@@ -38,7 +38,7 @@ func SetController(engine *gin.Engine, service *service.Service) *Controller {
 	api.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	c.UsersController = users.SetUsersController(api, service.UsersService)
-	c.CoursesController = courses.SetCoursesController(api, service.AIService)
+	c.CoursesController = courses.SetCoursesController(api, service.CoursesService)
 	c.AIController = ai.SetAIController(api, service.AIService)
 	c.MatchingController = matching.SetMatchingController(api, service.MatchingService)
 	c.CarpoolsController = carpools.SetCarpoolsController(api, service.CarpoolsService)
