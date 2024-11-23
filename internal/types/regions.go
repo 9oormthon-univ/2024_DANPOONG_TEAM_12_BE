@@ -188,3 +188,8 @@ var ContentTypeCodes = []ContentType{
 	ContentTypeShopping,
 	ContentTypeFood,
 }
+
+type AreaBasedListRequest struct {
+	AreaCode    string `json:"area_code"`
+	ContentType string `json:"content_type"`
+}

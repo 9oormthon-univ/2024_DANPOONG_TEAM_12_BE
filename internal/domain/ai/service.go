@@ -250,6 +250,8 @@ func (a *aiService) GetTourRecommendations(region string, interests []string) (s
 func (service *aiService) RecommendMatchingPost(page int, pageSize int, location string, interests []string) ([]*types.MatchingDetailForAI, error) {
 	// 1. 매칭 게시글 조회
 	// posts, err := service.MatchingService.GetPostsForAI(page, pageSize)
+
+	// 예시 데이터
 	posts, err := service.GetExampleMatchingPosts()
 	log.Println("사용자 위치 : ", location)
 	log.Println("사용자 관심사 : ", interests)

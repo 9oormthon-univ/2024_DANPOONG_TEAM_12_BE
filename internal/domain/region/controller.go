@@ -16,24 +16,32 @@ func SetRegionsController(api *gin.RouterGroup, service types.RegionsService) *R
 		regionsService: service,
 	}
 
-	api.GET("/regions/test/areaBasedList", r.GetareaBasedList)
+	api.GET("/regions//areaBasedList", r.GetareaBasedList)
 	api.GET("/regions/test/detailCommon", r.GetDetailCommon)
 	return r
 }
 
 func (r *RegionsController) GetareaBasedList(ctx *gin.Context) {
-	result, err := r.regionsService.GetAreaBasedList(types.Busan, "")
+	var req types.AreaBasedListRequest
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": "invalid request",
+		})
+		return
+	}
+
+	result, err := r.regionsService.GetAreaBasedList(types.AreaCode(req.AreaCode), types.ContentType(req.ContentType))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{
 			"message": "error",
-		},
-		)
+		})
+		return
 	}
-	ctx.JSON(http.StatusBadRequest, gin.H{
+	ctx.JSON(http.StatusOK, gin.H{
 		"message": "success",
 		"data":    result[0].ContentID,
-	},
-	)
+	})
 }
 
 func (r *RegionsController) GetDetailCommon(ctx *gin.Context) {
