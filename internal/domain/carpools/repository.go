@@ -39,3 +39,21 @@ func (repository *CarpoolsRepository) SaveCarpoolPost(post types.Carpool) error 
 	}
 	return nil
 }
+
+// 카풀 게시글 조회(출발 위치, 목적지 위치 기반)
+func (repository *CarpoolsRepository) findByLocation(request types.GetCarpoolPostRequestDTO) ([]types.Carpool, error) {
+	var carpoolList []types.Carpool
+
+	// 조건에 맞는 카풀 게시글 조회
+	query := repository.DB.Table("carpool").
+		Where("start_location LIKE ?", "%"+request.StartLocation+"%").
+		Where("end_location LIKE ?", "%"+request.EndLocation+"%").
+		Where("status = ?", "active").
+		Order("date ASC, start_time ASC"). // 날짜와 시간순으로 정렬
+		Find(&carpoolList)
+
+	if query.Error != nil {
+		return nil, query.Error
+	}
+	return carpoolList, nil
+}

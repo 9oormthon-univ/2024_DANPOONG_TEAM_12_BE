@@ -8,7 +8,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN go build -trimpath -ldflags "-w -s" -o coursePick
+RUN go build -trimpath -ldflags "-w -s" -o coursePickm
 
 # 배포 이미지 (deploy)
 FROM debian:bullseye-slim AS deploy

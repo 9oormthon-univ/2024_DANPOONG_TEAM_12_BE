@@ -21,6 +21,7 @@ func SetCarpoolsController(api *gin.RouterGroup, service types.CarpoolsService) 
 	api.GET("/carpools/posts/sorted-by-likes", c.GetTopLikedCarpools)
 	// 카풀 게시글 생성
 	api.POST("/carpools/posts", c.CreateCarpoolPost)
+	api.GET("/carpools/posts", c.SearchCarpools)
 
 	return c
 }
@@ -71,4 +72,25 @@ func (controller *CarpoolsController) CreateCarpoolPost(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "message": "Created Post"})
+}
+
+// 카풀 게시글 목록 조회(출발지, 목적지 기반)
+func (controller *CarpoolsController) SearchCarpools(ctx *gin.Context) {
+	var request types.GetCarpoolPostRequestDTO
+
+	// 요청 바디 확인
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		return
+	}
+
+	// Service 호출
+	carpools, err := controller.carpoolsService.GetCarpoolList(request)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 결과 반환
+	ctx.JSON(http.StatusOK, gin.H{"carpools": carpools})
 }

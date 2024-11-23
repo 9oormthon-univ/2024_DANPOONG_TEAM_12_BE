@@ -52,3 +52,12 @@ func (service *CarpoolsService) CreateCarpoolsPost(request types.CreateCarpoolPo
 	}
 	return nil
 }
+
+// 카쿺 게시글 목록 조회(출발지, 목적지 기반)
+func (service *CarpoolsService) GetCarpoolList(request types.GetCarpoolPostRequestDTO) ([]types.Carpool, error) {
+	carpools, err := service.carpoolsRepository.findByLocation(request)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch carpools: %w", err)
+	}
+	return carpools, nil
+}
