@@ -28,6 +28,7 @@ func SetMatchingController(api *gin.RouterGroup, service types.MatchingService) 
 	api.POST("/matching/:matchingID/applications", c.CreateMatchingApplication)
 	// AI 기반 매칭 게시글 추천
 	api.GET("/matching/posts/ai", c.GetRecommendMatchingPost)
+
 	return c
 }
 
@@ -146,6 +147,8 @@ func (controller *MatchingController) GetRecommendMatchingPost(ctx *gin.Context)
 	// 위치 자동 추적 기능 완성 되면 위치가져오기
 	posts, err := controller.matchingService.RecommendMatchingPosts(location, interest)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, util.SuccessResponse("매칭 게시글 추천 성공", posts))
+		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(err.Error()))
+		return
 	}
+	ctx.JSON(http.StatusBadRequest, util.SuccessResponse("매칭 게시글 추천 성공", posts))
 }

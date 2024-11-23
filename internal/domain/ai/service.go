@@ -338,6 +338,16 @@ func (service *aiService) RecommendMatchingPost(page int, pageSize int, location
 	// 응답 로깅 (디버깅 용도)
 	log.Printf("AI 응답 내용: %s", recommendedContent)
 
+	start := strings.Index(recommendedContent, "```json")
+	end := strings.LastIndex(recommendedContent, "```")
+	if start != -1 && end != -1 && end > start {
+		recommendedContent = recommendedContent[start+len("```json") : end]
+	}
+
+	// 공백 및 제어 문자 제거
+	recommendedContent = strings.TrimSpace(recommendedContent)
+	recommendedContent = strings.ReplaceAll(recommendedContent, "\x03", "") // '\\x03'
+
 	// 8. JSON 파싱 (추천된 게시글 정보가 JSON 배열 형식이라고 가정)
 	var recommendedPosts []*types.MatchingDetailForAI
 	err = json.Unmarshal([]byte(recommendedContent), &recommendedPosts)

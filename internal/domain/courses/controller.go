@@ -19,7 +19,7 @@ func SetCoursesController(api *gin.RouterGroup, service types.CoursesService) *C
 	api.GET("/courses/health", c.Health)
 
 	api.GET("/courses/me", c.GetMyCourses)
-	api.POST("/courses/ai", c.RecommendCourses)
+	api.GET("/courses/ai", c.RecommendCourses)
 	api.POST("/courses", c.PostMyCourses)
 	return c
 }

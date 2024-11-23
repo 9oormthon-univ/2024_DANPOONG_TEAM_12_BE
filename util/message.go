@@ -2,7 +2,7 @@ package util
 
 // ResponseDTO 구조체 정의
 type ResponseDTO struct {
-	Type    string      `json:"type"`
+	Status  string      `json:"type"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data,omitempty"`
 }
@@ -10,7 +10,7 @@ type ResponseDTO struct {
 // 성공 응답 생성 함수
 func SuccessResponse(message string, data interface{}) ResponseDTO {
 	return ResponseDTO{
-		Type:    "success",
+		Status:  "success",
 		Message: message,
 		Data:    data,
 	}
@@ -19,7 +19,7 @@ func SuccessResponse(message string, data interface{}) ResponseDTO {
 // 에러 응답 생성 함수
 func ErrorResponse(message string) ResponseDTO {
 	return ResponseDTO{
-		Type:    "error",
+		Status:  "error",
 		Message: message,
 	}
 }

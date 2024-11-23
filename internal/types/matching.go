@@ -33,7 +33,8 @@ type Matching struct {
 	Categories   []Category            `gorm:"foreignKey:MatchingID;constraint:OnDelete:CASCADE;"`
 	LikesModel   []MatchingLike        `gorm:"foreignKey:MatchingID;constraint:OnDelete:CASCADE;"`
 	Applications []MatchingApplication `gorm:"foreignKey:MatchingID;constraint:OnDelete:CASCADE;"`
-	Likes        int                   `gorm:"default:0"`
+	Location     string
+	Likes        int `gorm:"default:0"`
 }
 
 type MatchingApplication struct {
