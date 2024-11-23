@@ -18,6 +18,8 @@ import (
 type aiService struct {
 	aiRepository *AIRepository
 	types.RegionsService
+	types.CarpoolsService
+	types.MatchingService
 	client *openai.Client
 }
 
@@ -245,4 +247,10 @@ func (a *aiService) GetTourRecommendations(region string, interests []string) (s
 
 func (a *aiService) InjectRegionService(service types.RegionsService) {
 	a.RegionsService = service
+}
+func (a *aiService) InjectCarpoolsService(service types.CarpoolsService) {
+	a.CarpoolsService = service
+}
+func (a *aiService) InjectMatchingService(service types.MatchingService) {
+	a.MatchingService = service
 }

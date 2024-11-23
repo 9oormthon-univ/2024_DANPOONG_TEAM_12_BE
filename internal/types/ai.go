@@ -2,6 +2,8 @@ package types
 
 type AIService interface {
 	InjectRegionService(service RegionsService)
+	InjectCarpoolsService(service CarpoolsService)
+	InjectMatchingService(service MatchingService)
 	// DefineFunctions() []openai.FunctionDefinition
 	RecommendCourses(req *RecommendCourseReq) ([]*CourseRecommendationAIRes, error)
 	GetTourRecommendations(region string, interests []string) (string, error)

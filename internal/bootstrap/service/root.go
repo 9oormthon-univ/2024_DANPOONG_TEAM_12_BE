@@ -34,6 +34,9 @@ func SetService(repository *repository.Repository) *Service {
 
 	// 의존성 주입
 	aiService.InjectRegionService(regionsService)
+	aiService.InjectCarpoolsService(carpoolsService)
+	aiService.InjectMatchingService(matchingService)
+
 	coursesService.InjectAIService(aiService)
 	coursesService.InjectRegionService(regionsService)
 
