@@ -40,6 +40,8 @@ func SetService(repository *repository.Repository) *Service {
 	coursesService.InjectAIService(aiService)
 	coursesService.InjectRegionService(regionsService)
 
+	matchingService.InjectAIService(aiService)
+
 	s := &Service{
 		AuthService:     authService,
 		CarpoolsService: carpoolsService,

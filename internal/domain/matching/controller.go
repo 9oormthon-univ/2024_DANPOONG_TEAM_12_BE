@@ -1,10 +1,12 @@
 package matching
 
 import (
-	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/types"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/types"
+	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/util"
+	"github.com/gin-gonic/gin"
 )
 
 type MatchingController struct {
@@ -24,6 +26,8 @@ func SetMatchingController(api *gin.RouterGroup, service types.MatchingService) 
 	api.GET("/matching/posts/me", c.GetUserMatchingPosts)
 	// 매칭 지원하기
 	api.POST("/matching/:matchingID/applications", c.CreateMatchingApplication)
+	// AI 기반 매칭 게시글 추천
+	api.GET("/matching/posts/ai", c.GetRecommendMatchingPost)
 	return c
 }
 
@@ -133,4 +137,15 @@ func (controller *MatchingController) CreateMatchingApplication(ctx *gin.Context
 
 	// 성공 응답
 	ctx.JSON(http.StatusCreated, application)
+}
+
+func (controller *MatchingController) GetRecommendMatchingPost(ctx *gin.Context) {
+	// 로그인 기능 되면 사용자 관심사 불러오기
+	interest := []string{"등산", "친구"}
+	location := "서울"
+	// 위치 자동 추적 기능 완성 되면 위치가져오기
+	posts, err := controller.matchingService.RecommendMatchingPosts(location, interest)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, util.SuccessResponse("매칭 게시글 추천 성공", posts))
+	}
 }

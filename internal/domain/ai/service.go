@@ -251,7 +251,8 @@ func (service *aiService) RecommendMatchingPost(page int, pageSize int, location
 	// 1. 매칭 게시글 조회
 	// posts, err := service.MatchingService.GetPostsForAI(page, pageSize)
 	posts, err := service.GetExampleMatchingPosts()
-
+	log.Println("사용자 위치 : ", location)
+	log.Println("사용자 관심사 : ", interests)
 	if err != nil {
 		return nil, fmt.Errorf("게시글 조회 오류: %w", err)
 	}
@@ -263,7 +264,8 @@ func (service *aiService) RecommendMatchingPost(page int, pageSize int, location
 
 	// 2. 프롬프트 생성
 	prompt := fmt.Sprintf(`
-나의 위치는 %s이고, 관심사는 %s이야. 아래의 매칭 게시글들을 참고해서 나에게 가장 적합한 매칭 게시글 1개를 추천해줘. 추천된 게시글의 ID, 상세 내용, 카테고리를 JSON 배열 형식으로 반환해줘.
+나의 위치는 %s이고, 관심사는 %s이야. 아래의 매칭 게시글들을 참고해서 나에게 가장 적합한 매칭 게시글 1개를 추천해줘. 추천된 게시글의 ID, 타이틀, 상세 내용, 카테고리, 위치를 JSON 배열 형식으로 반환해줘.
+
 
 매칭 게시글들:
 `, location, strings.Join(interests, ", "))
@@ -274,9 +276,11 @@ func (service *aiService) RecommendMatchingPost(page int, pageSize int, location
 		prompt += fmt.Sprintf(`
 ---
 게시글 ID: %s
+게시글 Title: %s
 상세 내용: %s
 카테고리: %s
-`, post.MatchingID, post.Details, categoriesStr)
+위치 : %s
+`, post.MatchingID, post.Title, post.Details, categoriesStr, post.Location)
 	}
 
 	// 프롬프트 마무리
@@ -286,8 +290,10 @@ func (service *aiService) RecommendMatchingPost(page int, pageSize int, location
 [
     {
         "matching_id": "숫자",
+		"title": "문자열",
         "details": "문자열",
         "categories": ["카테고리1", "카테고리2"]
+		"location": "문자열"
     },
     ...
 ]
@@ -297,7 +303,7 @@ func (service *aiService) RecommendMatchingPost(page int, pageSize int, location
 	messages := []openai.ChatCompletionMessage{
 		{
 			Role:    openai.ChatMessageRoleSystem,
-			Content: "사용자의 근처 동네와 관심사를 기반으로 매칭 게시글의 카테고리와 내용을 사용자에게 맞게 추천해주는 어시스턴트입니다. 최종적으로 게시글 ID, 상세 내용, 카테고리를 JSON 배열 형식으로 제공합니다.",
+			Content: "사용자의 근처 동네와 관심사를 기반으로 매칭 게시글의 카테고리와 내용을 사용자에게 맞게 추천해주는 어시스턴트입니다. 최종적으로 게시글 ID, 문자열, 상세 내용, 카테고리, 위치를 JSON 배열 형식으로 제공합니다.",
 		},
 		{
 			Role:    openai.ChatMessageRoleUser,

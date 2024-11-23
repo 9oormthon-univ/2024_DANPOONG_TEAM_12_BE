@@ -11,6 +11,7 @@ type MatchingService interface {
 	CreateMatchingApplication(request MatchingApplicationRequestDTO, matchingID int64) (*MatchingApplicationResponseDTO, error)
 	GetPostsForAI(page int, pageSize int) ([]*MatchingDetailForAI, error)
 	GetExampleMatchingPosts() ([]*MatchingDetailForAI, error)
+	RecommendMatchingPosts(location string, intereset []string) ([]*MatchingDetailForAI, error)
 }
 
 // Matching 구조체는 매칭 정보를 나타냅니다.
@@ -120,4 +121,5 @@ type MatchingDetailForAI struct {
 	Title      string   `json:"title"`
 	Details    string   `json:"details"`
 	Categories []string `json:"categories"`
+	Location   string   `json:"location"`
 }
