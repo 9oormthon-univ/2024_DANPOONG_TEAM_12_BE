@@ -3,9 +3,10 @@ package matching
 import (
 	"errors"
 	"fmt"
+	"log"
+
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/types"
 	"gorm.io/gorm"
-	"log"
 )
 
 type MatchingRepository struct {
@@ -99,4 +100,24 @@ func (r *MatchingRepository) GetByID(matchingID int64) (*types.Matching, error) 
 	}
 
 	return &matching, nil
+}
+
+// 전체 매칭 게시글 조회
+func (repository *MatchingRepository) GetAllMatchingPosts(page int, pageSize int) ([]*types.Matching, error) {
+	var matchings []*types.Matching
+
+	offset := (page - 1) * pageSize
+	result := repository.DB.Offset(offset).Limit(pageSize).Find(&matchings)
+
+	if result.Error != nil {
+		log.Printf("Error fetching all matching posts: %v", result.Error)
+		return nil, fmt.Errorf("모든 매칭 게시글 조회 실패 : %w", result.Error)
+	}
+
+	// 데이터가 없는 경우 처리
+	if len(matchings) == 0 {
+		return nil, fmt.Errorf("매칭 게시글이 하나도 없음")
+	}
+
+	return matchings, nil
 }

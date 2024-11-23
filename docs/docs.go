@@ -88,9 +88,13 @@ const docTemplate = `{
                         "$ref": "#/definitions/types.Plan"
                     }
                 },
+                "start_date": {
+                    "description": "시작 날짜, 시간 포인터 타입",
+                    "type": "string"
+                },
                 "total_time": {
                     "description": "총 시간, 포인터 타입",
-                    "type": "integer"
+                    "type": "string"
                 }
             }
         },
@@ -158,18 +162,32 @@ const docTemplate = `{
                     "description": "지역 코드",
                     "type": "string"
                 },
-                "end_time": {
-                    "type": "string"
-                },
-                "interests": {
-                    "description": "관심사",
+                "categories": {
+                    "description": "카테고리",
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
+                "end_date": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "시작 날짜",
+                    "type": "string"
+                },
                 "start_time": {
-                    "description": "여행 시작 시간 (예: \"10:00\")",
+                    "description": "시작 시간",
+                    "type": "string"
+                },
+                "total_time": {
+                    "type": "string"
+                },
+                "with": {
+                    "description": "누구와",
                     "type": "string"
                 }
             }

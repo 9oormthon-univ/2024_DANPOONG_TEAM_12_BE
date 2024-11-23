@@ -3,13 +3,15 @@ package matching
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/domain/users"
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/types"
-	"time"
 )
 
 type matchingService struct {
 	matchingRepository *MatchingRepository
+	types.AIService
 }
 
 func SetMatchingService(repository *MatchingRepository) *matchingService {
@@ -118,4 +120,69 @@ func (service *matchingService) CreateMatchingApplication(request types.Matching
 	}
 
 	return response, nil
+}
+
+// 모든 게시글을 가져와서 id, details, categories 추출 --- 사용자 위치는 아직 추출 x
+func (service *matchingService) GetPostsForAI(page int, pageSize int) ([]*types.MatchingDetailForAI, error) {
+
+	var results []*types.MatchingDetailForAI = make([]*types.MatchingDetailForAI, 0)
+
+	posts, err := service.matchingRepository.GetAllMatchingPosts(page, pageSize)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, post := range posts {
+		result := &types.MatchingDetailForAI{
+			MatchingID: string(post.MatchingID),
+			Details:    post.Details,
+			Categories: []string{},
+		}
+		result.Categories = append(result.Categories, result.Categories...)
+		results = append(results, result)
+	}
+
+	return results, nil
+}
+
+func (service *matchingService) GetExampleMatchingPosts() ([]*types.MatchingDetailForAI, error) {
+	// 예시 데이터 생성
+	examplePosts := []*types.MatchingDetailForAI{
+		{
+			MatchingID: string(1),
+			Title:      "주말 등산 모임",
+			Details:    "친구와 함께하는 주말 등산 모임입니다. 자연을 사랑하고 활발한 활동을 즐기는 분들을 모집합니다.",
+			Categories: []string{"친구", "등산", "활동적"},
+			Location:   "서울 강남구",
+		},
+		{
+			MatchingID: string(2),
+			Title:      "조용한 독서 클럽",
+			Details:    "내향인 분들을 위한 조용한 독서 클럽입니다. 편안한 분위기에서 다양한 책을 함께 읽고 토론해요.",
+			Categories: []string{"내향인", "독서", "클럽"},
+			Location:   "대구 달서구",
+		},
+		{
+			MatchingID: string(3),
+			Title:      "프로그래밍 워크샵",
+			Details:    "프로그래밍과 테크놀로지에 관심 있는 분들을 위한 워크샵을 개최합니다. 최신 기술 동향을 함께 논의해요.",
+			Categories: []string{"프로그래밍", "테크놀로지", "워크샵"},
+			Location:   "충남 아산시",
+		},
+	}
+
+	// 예시 데이터를 반환
+	return examplePosts, nil
+}
+
+func (service *matchingService) RecommendMatchingPosts(location string, intereset []string) ([]*types.MatchingDetailForAI, error) {
+	posts, err := service.AIService.RecommendMatchingPost(1, 3, location, intereset)
+	if err != nil {
+		return nil, err
+	}
+	return posts, nil
+}
+
+func (service *matchingService) InjectAIService(aiService types.AIService) {
+	service.AIService = aiService
 }

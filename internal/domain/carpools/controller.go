@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/types"
+	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,6 +27,8 @@ func SetCarpoolsController(api *gin.RouterGroup, service types.CarpoolsService) 
 	// 내가 작성한 카풀 게시글 목록 조회
 	api.GET("/carpools/posts/me", c.GetUserCarpoolPost)
 
+	// 카풀 추천 (ai로 안 함)
+	api.GET("/carpools/posts/ai", c.RecommendCarpoolPost)
 	return c
 }
 
@@ -117,4 +120,21 @@ func (controller *CarpoolsController) GetUserCarpoolPost(ctx *gin.Context) {
 
 	// 결과 반환
 	ctx.JSON(http.StatusOK, gin.H{"carpools": carpools})
+}
+
+func (controller *CarpoolsController) RecommendCarpoolPost(ctx *gin.Context) {
+	// 목적지 추출
+
+	// 사용자 위치 추출(임시로 설정)
+
+	location := "강원도"
+
+	posts, err := controller.carpoolsService.FindStartSpot(location)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, util.SuccessResponse("카풀 게시글 추천 성공", posts))
+
 }

@@ -18,6 +18,8 @@ import (
 type aiService struct {
 	aiRepository *AIRepository
 	types.RegionsService
+	types.CarpoolsService
+	types.MatchingService
 	client *openai.Client
 }
 
@@ -243,6 +245,133 @@ func (a *aiService) GetTourRecommendations(region string, interests []string) (s
 	return string(recommendationsJSON), nil
 }
 
+// id, details, categories + location(사용자 위치)
+// 컨트롤러에서 사용자 지역 위치 반환
+func (service *aiService) RecommendMatchingPost(page int, pageSize int, location string, interests []string) ([]*types.MatchingDetailForAI, error) {
+	// 1. 매칭 게시글 조회
+	// posts, err := service.MatchingService.GetPostsForAI(page, pageSize)
+	posts, err := service.GetExampleMatchingPosts()
+	log.Println("사용자 위치 : ", location)
+	log.Println("사용자 관심사 : ", interests)
+	if err != nil {
+		return nil, fmt.Errorf("게시글 조회 오류: %w", err)
+	}
+
+	// 데이터가 없는 경우 처리
+	if len(posts) == 0 {
+		return nil, fmt.Errorf("게시글이 없음")
+	}
+
+	// 2. 프롬프트 생성
+	prompt := fmt.Sprintf(`
+나의 위치는 %s이고, 관심사는 %s이야. 아래의 매칭 게시글들을 참고해서 나에게 가장 적합한 매칭 게시글 1개를 추천해줘. 추천된 게시글의 ID, 타이틀, 상세 내용, 카테고리, 위치를 JSON 배열 형식으로 반환해줘.
+
+
+매칭 게시글들:
+`, location, strings.Join(interests, ", "))
+
+	// 각 게시글의 상세 정보 추가
+	for _, post := range posts {
+		categoriesStr := strings.Join(post.Categories, ", ")
+		prompt += fmt.Sprintf(`
+---
+게시글 ID: %s
+게시글 Title: %s
+상세 내용: %s
+카테고리: %s
+위치 : %s
+`, post.MatchingID, post.Title, post.Details, categoriesStr, post.Location)
+	}
+
+	// 프롬프트 마무리
+	prompt += `
+---
+응답 형식:
+[
+    {
+        "matching_id": "숫자",
+		"title": "문자열",
+        "details": "문자열",
+        "categories": ["카테고리1", "카테고리2"]
+		"location": "문자열"
+    },
+    ...
+]
+`
+
+	// 3. OpenAI 메시지 구성
+	messages := []openai.ChatCompletionMessage{
+		{
+			Role:    openai.ChatMessageRoleSystem,
+			Content: "사용자의 근처 동네와 관심사를 기반으로 매칭 게시글의 카테고리와 내용을 사용자에게 맞게 추천해주는 어시스턴트입니다. 최종적으로 게시글 ID, 문자열, 상세 내용, 카테고리, 위치를 JSON 배열 형식으로 제공합니다.",
+		},
+		{
+			Role:    openai.ChatMessageRoleUser,
+			Content: prompt,
+		},
+	}
+
+	// 4. OpenAI API 요청 구성
+	req := openai.ChatCompletionRequest{
+		Model:       openai.GPT4Turbo, // 사용하려는 모델로 변경 가능
+		Messages:    messages,
+		MaxTokens:   500, // 응답의 길이에 따라 조정
+		Temperature: 0.5, // 창의성 조절
+	}
+
+	// 5. OpenAI API 호출
+	resp, err := service.client.CreateChatCompletion(context.Background(), req)
+	if err != nil {
+		log.Printf("Error calling OpenAI API: %v", err)
+		return nil, fmt.Errorf("OpenAI API 호출 오류: %w", err)
+	}
+
+	// 6. 응답 검증
+	if len(resp.Choices) == 0 {
+		log.Println("No recommendations returned from OpenAI.")
+		return nil, fmt.Errorf("OpenAI로부터 추천을 받을 수 없습니다.")
+	}
+
+	// 7. 응답에서 추천된 게시글 정보 추출
+	recommendedContent := strings.TrimSpace(resp.Choices[0].Message.Content)
+
+	// 응답 로깅 (디버깅 용도)
+	log.Printf("AI 응답 내용: %s", recommendedContent)
+
+	start := strings.Index(recommendedContent, "```json")
+	end := strings.LastIndex(recommendedContent, "```")
+	if start != -1 && end != -1 && end > start {
+		recommendedContent = recommendedContent[start+len("```json") : end]
+	}
+
+	// 공백 및 제어 문자 제거
+	recommendedContent = strings.TrimSpace(recommendedContent)
+	recommendedContent = strings.ReplaceAll(recommendedContent, "\x03", "") // '\\x03'
+
+	// 8. JSON 파싱 (추천된 게시글 정보가 JSON 배열 형식이라고 가정)
+	var recommendedPosts []*types.MatchingDetailForAI
+	err = json.Unmarshal([]byte(recommendedContent), &recommendedPosts)
+	if err != nil {
+		log.Printf("Error parsing AI response as JSON: %v", err)
+		return nil, fmt.Errorf("AI 응답 파싱 오류: %w", err)
+	}
+
+	// 9. 추천 게시글이 없는 경우 처리
+	if len(recommendedPosts) == 0 {
+		log.Println("AI did not return any recommended posts.")
+		return nil, fmt.Errorf("추천할 게시글이 없습니다.")
+	}
+
+	// 10. 추천 게시글 반환
+	return recommendedPosts, nil
+}
+
 func (a *aiService) InjectRegionService(service types.RegionsService) {
 	a.RegionsService = service
+}
+func (a *aiService) InjectCarpoolsService(service types.CarpoolsService) {
+	a.CarpoolsService = service
+}
+func (a *aiService) InjectMatchingService(service types.MatchingService) {
+	a.MatchingService = service
 }

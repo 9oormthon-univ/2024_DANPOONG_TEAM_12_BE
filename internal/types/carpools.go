@@ -7,6 +7,7 @@ type CarpoolsService interface {
 	CreateCarpoolsPost(request CreateCarpoolPostRequestDTO) error
 	GetCarpoolList(request GetCarpoolPostRequestDTO) ([]CarpoolPostResponseDTO, error)
 	GetUserCarpoolList(request GetUserCarpoolPostRequestDTO) ([]CarpoolPostResponseDTO, error)
+	FindStartSpot(location string) ([]*CarpoolPostResponseDTO, error)
 }
 
 // Carpool 구조체는 카풀 게시글 정보를 나타냅니다.

@@ -3,9 +3,10 @@ package carpools
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/domain/users"
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/types"
-	"time"
 )
 
 type CarpoolsService struct {
@@ -91,4 +92,13 @@ func (service *CarpoolsService) GetUserCarpoolList(request types.GetUserCarpoolP
 		return nil, fmt.Errorf("failed to fetch carpools: %w", err)
 	}
 	return carpools, nil
+}
+
+func (service *CarpoolsService) FindStartSpot(location string) ([]*types.CarpoolPostResponseDTO, error) {
+	posts, err := service.carpoolsRepository.FindStartSpot(location)
+	if err != nil {
+		return nil, err
+	}
+
+	return posts, nil
 }

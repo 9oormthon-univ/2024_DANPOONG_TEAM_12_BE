@@ -1,9 +1,10 @@
 package carpools
 
 import (
+	"log"
+
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/types"
 	"gorm.io/gorm"
-	"log"
 )
 
 type CarpoolsRepository struct {
@@ -79,6 +80,22 @@ func (repository *CarpoolsRepository) findByUser(request types.GetUserCarpoolPos
 	if len(carpools) == 0 {
 		log.Printf("No carpool posts found for user %d", request.UserID)
 		return nil, nil // 데이터가 없을 경우 nil 반환
+	}
+
+	return carpools, nil
+}
+
+func (repository *CarpoolsRepository) FindStartSpot(location string) ([]*types.CarpoolPostResponseDTO, error) {
+	var carpools []*types.CarpoolPostResponseDTO
+
+	query := repository.DB.Table("carpool").
+		Where("start_location LIKE ?", "%"+location+"%").
+		Where("status = ?", "active").
+		Order("date ASC, start_time ASC").
+		Find(&carpools)
+
+	if query.Error != nil {
+		return nil, query.Error
 	}
 
 	return carpools, nil
