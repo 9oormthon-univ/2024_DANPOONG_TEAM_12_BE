@@ -16,11 +16,13 @@ func SetMatchingController(api *gin.RouterGroup, service types.MatchingService) 
 		matchingService: service,
 	}
 	// 핸들러 등록
+	// 매칭 게시글 좋아요 순 조회
 	api.GET("/matching/posts/sorted-by-likes", c.GetTopLikedMatchingPosts)
 	return c
 }
 
-func (c *MatchingController) GetTopLikedMatchingPosts(ctx *gin.Context) {
+// 매칭 게시글 좋아요 순 조회
+func (controller *MatchingController) GetTopLikedMatchingPosts(ctx *gin.Context) {
 	limitStr := ctx.DefaultQuery("limit", "3") // 기본값 3
 	limit, err := strconv.Atoi(limitStr)
 	if err != nil || limit <= 0 {
@@ -29,7 +31,7 @@ func (c *MatchingController) GetTopLikedMatchingPosts(ctx *gin.Context) {
 	}
 
 	// 서비스 호출
-	posts, err := c.matchingService.GetTopLikeMatchingPosts(limit)
+	posts, err := controller.matchingService.GetTopLikeMatchingPosts(limit)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Failed to fetch posts"})
 		return
