@@ -16,6 +16,7 @@ func SetCarpoolsRepository(DB *gorm.DB) *CarpoolsRepository {
 	return r
 }
 
+// 카풀 게시글 좋아요 순 조회
 func (repository *CarpoolsRepository) GetTopLikedCarpools(limit int) ([]types.CarpoolTopLikesResponseDTO, error) {
 	var carpools []types.CarpoolTopLikesResponseDTO
 	result := repository.DB.Table("carpool").
@@ -29,4 +30,12 @@ func (repository *CarpoolsRepository) GetTopLikedCarpools(limit int) ([]types.Ca
 		return nil, result.Error
 	}
 	return carpools, nil
+}
+
+// 카풀 게시글 생성
+func (repository *CarpoolsRepository) SaveCarpoolPost(post types.Carpool) error {
+	if err := repository.DB.Create(&post).Error; err != nil {
+		return err
+	}
+	return nil
 }

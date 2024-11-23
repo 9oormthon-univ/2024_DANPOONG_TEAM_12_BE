@@ -17,11 +17,15 @@ func SetCarpoolsController(api *gin.RouterGroup, service types.CarpoolsService) 
 		carpoolsService: service,
 	}
 	// 핸들러 등록
+	// 카풀 게시글 좋아요 순 조회
 	api.GET("/carpools/posts/sorted-by-likes", c.GetTopLikedCarpools)
+	// 카풀 게시글 생성
+	api.POST("/carpools/posts", c.CreateCarpoolPost)
 
 	return c
 }
 
+// 카풀 게시글 좋아요순 조회
 func (controller *CarpoolsController) GetTopLikedCarpools(ctx *gin.Context) {
 	limitStr := ctx.DefaultQuery("limit", "3")
 	limit, err := strconv.Atoi(limitStr)
@@ -52,4 +56,19 @@ func (controller *CarpoolsController) GetTopLikedCarpools(ctx *gin.Context) {
 			"posts": carpools,
 		},
 	})
+}
+
+// 카풀 게시글 생성
+func (controller *CarpoolsController) CreateCarpoolPost(ctx *gin.Context) {
+	var request types.CreateCarpoolPostRequestDTO
+	if err := ctx.ShouldBind(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": err.Error()})
+		return
+	}
+
+	if err := controller.carpoolsService.CreateCarpoolsPost(request); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Failed to create post"})
+		return
+	}
+	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "message": "Created Post"})
 }

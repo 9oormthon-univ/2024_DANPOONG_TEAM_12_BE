@@ -4,17 +4,20 @@ import "time"
 
 type CarpoolsService interface {
 	GetTopLikedCarpools(limit int) ([]CarpoolTopLikesResponseDTO, error)
+	CreateCarpoolsPost(request CreateCarpoolPostRequestDTO) error
 }
 
 // Carpool 구조체는 카풀 게시글 정보를 나타냅니다.
 type Carpool struct {
-	CarpoolID     int64                `gorm:"column:carpool_id;primaryKey;autoIncrement" json:"carpool_id"`  // 카풀 ID, 자동 증가 및 기본 키
-	Title         string               `gorm:"column:title;size:100;not null" json:"title"`                   // 카풀 제목, 최대 100자, 필수 입력
+	CarpoolID     int64                `gorm:"column:carpool_id;primaryKey;autoIncrement" json:"carpool_id"` // 카풀 ID, 자동 증가 및 기본 키
+	Title         string               `gorm:"column:title;size:100;not null" json:"title"`                  // 카풀 제목, 최대 100자, 필수 입력
+	ImageURL      string               `gorm:"column:image_url" json:"image_url"`
 	Details       string               `gorm:"column:details;type:text" json:"details"`                       // 상세 설명, 텍스트 타입
 	StartLocation string               `gorm:"column:start_location;size:100;not null" json:"start_location"` // 출발지, 최대 100자, 필수 입력
 	EndLocation   string               `gorm:"column:end_location;size:100;not null" json:"end_location"`     // 도착지, 최대 100자, 필수 입력
-	StartTime     time.Time            `gorm:"column:start_time;type:datetime;not null" json:"start_time"`    // 출발 시간, 필수 입력
-	Status        string               `gorm:"column:status;type:enum('active','completed','cancelled');not null" json:"status"`
+	Date          string               `gorm:"size:100;not null"`
+	StartTime     string               `gorm:"size:100" json:"start_time"`
+	Status        string               `gorm:"type:enum('active', 'completed', 'cancelled');default:'active';not null" json:"status"`
 	CreatedAt     time.Time            `gorm:"column:created_at;autoCreateTime" json:"created_at"`                    // 생성 시간, 자동 생성
 	UpdatedAt     time.Time            `gorm:"column:updated_at;autoUpdateTime" json:"updated_at"`                    // 수정 시간, 자동 업데이트
 	Applications  []CarpoolApplication `gorm:"foreignKey:CarpoolID;constraint:OnDelete:CASCADE;" json:"applications"` // 카풀 지원서들, 카풀 삭제 시 함께 삭제
@@ -52,4 +55,15 @@ type CarpoolTopLikesResponseDTO struct {
 	EndLocation   string    `json:"end_location"`
 	StartTime     time.Time `json:"start_time"`
 	LikesCount    int       `json:"likes_count"`
+}
+
+type CreateCarpoolPostRequestDTO struct {
+	Title         string `json:"title" binding:"required"`
+	ImageURL      string `json:"image_url"`
+	StartLocation string `json:"start_location"`
+	EndLocation   string `json:"end_location"`
+	Details       string `json:"details" binding:"required"`
+	UserID        int64  `json:"user_id" binding:"required"`
+	Date          string `json:"date" binding:"required"`
+	StartTime     string `json:"start_time"`
 }
