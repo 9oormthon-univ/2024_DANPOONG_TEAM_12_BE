@@ -17,11 +17,19 @@ func SetCarpoolsController(api *gin.RouterGroup, service types.CarpoolsService) 
 		carpoolsService: service,
 	}
 	// 핸들러 등록
+	// 카풀 게시글 좋아요 순 조회
 	api.GET("/carpools/posts/sorted-by-likes", c.GetTopLikedCarpools)
+	// 카풀 게시글 생성
+	api.POST("/carpools/posts", c.CreateCarpoolPost)
+	// 카풀 게시글 목록 조회 by 위치
+	api.GET("/carpools/posts", c.GetCarpoolsByLocation)
+	// 내가 작성한 카풀 게시글 목록 조회
+	api.GET("/carpools/posts/me", c.GetUserCarpoolPost)
 
 	return c
 }
 
+// 카풀 게시글 좋아요순 조회
 func (controller *CarpoolsController) GetTopLikedCarpools(ctx *gin.Context) {
 	limitStr := ctx.DefaultQuery("limit", "3")
 	limit, err := strconv.Atoi(limitStr)
@@ -52,4 +60,61 @@ func (controller *CarpoolsController) GetTopLikedCarpools(ctx *gin.Context) {
 			"posts": carpools,
 		},
 	})
+}
+
+// 카풀 게시글 생성
+func (controller *CarpoolsController) CreateCarpoolPost(ctx *gin.Context) {
+	var request types.CreateCarpoolPostRequestDTO
+	if err := ctx.ShouldBind(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"status": "error", "message": err.Error()})
+		return
+	}
+
+	if err := controller.carpoolsService.CreateCarpoolsPost(request); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Failed to create post"})
+		return
+	}
+	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "message": "Created Post"})
+}
+
+// 카풀 게시글 목록 조회(출발지, 목적지 기반)
+func (controller *CarpoolsController) GetCarpoolsByLocation(ctx *gin.Context) {
+	var request types.GetCarpoolPostRequestDTO
+
+	// 요청 바디 확인
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		return
+	}
+
+	// Service 호출
+	carpools, err := controller.carpoolsService.GetCarpoolList(request)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 결과 반환
+	ctx.JSON(http.StatusOK, gin.H{"carpools": carpools})
+}
+
+// 내가 작성한 카풀 게시글 조회
+func (controller *CarpoolsController) GetUserCarpoolPost(ctx *gin.Context) {
+	var request types.GetUserCarpoolPostRequestDTO
+
+	// 요청 바디 확인
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		return
+	}
+
+	// Service 호출
+	carpools, err := controller.carpoolsService.GetUserCarpoolList(request)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 결과 반환
+	ctx.JSON(http.StatusOK, gin.H{"carpools": carpools})
 }
