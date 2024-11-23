@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/types"
+	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/util"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,6 +18,7 @@ func SetAIController(api *gin.RouterGroup, service types.AIService) *AIControlle
 	}
 	// 핸들러 등록
 	api.POST("/ai/test/course", c.RecommendCoursesTest)
+	api.POST("/ai/test/matching", c.RecommendMatchingPostTest)
 	return c
 }
 
@@ -47,4 +49,17 @@ func (a *AIController) RecommendCoursesTest(ctx *gin.Context) {
 		"type":    "success",
 		"data":    result,
 	})
+}
+
+func (a *AIController) RecommendMatchingPostTest(ctx *gin.Context) {
+	location := "서울"
+	interests := []string{"코딩", "기술"}
+
+	posts, err := a.aiService.RecommendMatchingPost(1, 5, location, interests)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, posts)
 }

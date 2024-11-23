@@ -1,12 +1,15 @@
 package types
 
+import "github.com/sashabaranov/go-openai"
+
 type AIService interface {
 	InjectRegionService(service RegionsService)
 	InjectCarpoolsService(service CarpoolsService)
 	InjectMatchingService(service MatchingService)
-	// DefineFunctions() []openai.FunctionDefinition
+	DefineFunctions() []openai.FunctionDefinition
 	RecommendCourses(req *RecommendCourseReq) ([]*CourseRecommendationAIRes, error)
 	GetTourRecommendations(region string, interests []string) (string, error)
+	RecommendMatchingPost(page int, pageSize int, location string, interests []string) ([]*MatchingDetailForAI, error)
 }
 
 type ChatMessage struct {

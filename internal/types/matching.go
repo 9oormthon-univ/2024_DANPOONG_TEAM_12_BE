@@ -9,6 +9,8 @@ type MatchingService interface {
 	CreateMatchingPost(request CreateMatchingPostRequestDTO) error
 	GetUserMatchingPosts(userID int64) ([]MatchingPostResponseDTO, error)
 	CreateMatchingApplication(request MatchingApplicationRequestDTO, matchingID int64) (*MatchingApplicationResponseDTO, error)
+	GetPostsForAI(page int, pageSize int) ([]*MatchingDetailForAI, error)
+	GetExampleMatchingPosts() ([]*MatchingDetailForAI, error)
 }
 
 // Matching 구조체는 매칭 정보를 나타냅니다.
@@ -111,4 +113,11 @@ type MatchingApplicationResponseDTO struct {
 	Description   string    `json:"description"` // 자기소개
 	AppliedAt     time.Time `json:"applied_at"`
 	User          User      `json:"user"`
+}
+
+type MatchingDetailForAI struct {
+	MatchingID string   `json:"matching_id"`
+	Title      string   `json:"title"`
+	Details    string   `json:"details"`
+	Categories []string `json:"categories"`
 }
