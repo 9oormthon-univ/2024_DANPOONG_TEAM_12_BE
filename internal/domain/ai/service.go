@@ -76,7 +76,7 @@ func (a *aiService) RecommendCourses(req *types.RecommendCourseReq) ([]*types.Co
 			Role: openai.ChatMessageRoleSystem,
 			Content: fmt.Sprintf(
 				`당신은 여행 코스를 추천하는 어시스턴트입니다.
-사용자가 입력한 관심사를 다음의 Tour API 카테고리로 값을 바꿔서 함수 매개변수로 사용해야 합니다: [%s].
+사용자가 입력한 관심사를 다음의 Tour API 카테고리로 값들 중 최대 3개 이하로 바꿔서 함수 매개변수로 사용해야 합니다: [%s].
 제공된 데이터를 기반으로 시간 순서대로 여행 코스를 생성하고, 각 장소의 시작 시간과 끝 시간을 자동으로 배정하세요.
 응답은 배열 형태의 JSON으로만 반환해야 하며, 각 장소는 'title', 'description', 'address', 'start_time', 'end_time', 'type', 'content_id'을 포함해야 합니다.
 응답은 반드시 배열 형태의 JSON으로만 시작하고 끝나야 합니다. 추가적인 텍스트나 설명을 포함하지 마세요.
@@ -100,7 +100,7 @@ func (a *aiService) RecommendCourses(req *types.RecommendCourseReq) ([]*types.Co
 			Content: fmt.Sprintf(
 				"지역: %s, 관심사: %s, 여행 시간: %s부터 %s까지. 관심사를 위의 카테고리로 바꿔서 적합한 장소를 추천해주세요.",
 				a.RegionsService.GetAreaNameByCode(types.AreaCode(req.AreaCode)),
-				req.Interests,
+				req.Categories,
 				req.StartTime,
 				req.EndTime,
 			),
@@ -141,7 +141,7 @@ func (a *aiService) RecommendCourses(req *types.RecommendCourseReq) ([]*types.Co
 		}
 
 		// 관심사 매핑 로그
-		log.Printf("%s -> %s", req.Interests, args.Interests)
+		log.Printf("%s -> %s", req.Categories, args.Interests)
 
 		// 관심사 매핑: 문자열을 공백으로 분리하여 배열로 변환
 		interests := strings.Fields(args.Interests)

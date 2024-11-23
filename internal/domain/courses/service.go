@@ -22,9 +22,11 @@ func (c *CoursesService) RecommendCourses(req *types.RecommendCourseReq) (*types
 	if err != nil {
 		return nil, err
 	}
-
 	result := &types.Course{
-		Name: req.AreaCode,
+		Name:      c.RegionsService.GetAreaNameByCode(types.AreaCode(req.AreaCode)),
+		StartDate: req.StartDate,
+		EndDate:   req.EndDate,
+		TotalTime: req.TotalTime,
 		Plans: []types.Plan{
 			{
 				DayNumber: "1",

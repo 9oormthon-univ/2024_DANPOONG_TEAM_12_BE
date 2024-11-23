@@ -5,15 +5,16 @@ import (
 
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/config"
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/bootstrap"
-	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 // 서버 실행
 func Run() {
 	engine := gin.New()
+
 	gin.SetMode(gin.DebugMode)
-	engine.Use(middleware.CORSMiddleware())
+
+	// engine.Use(middleware.CORSMiddleware())
 	cfg, err := config.SetConfig()
 	if err != nil {
 		panic(err)

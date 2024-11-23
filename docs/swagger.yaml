@@ -1,4 +1,125 @@
+basePath: /api
+definitions:
+  types.Course:
+    properties:
+      end_date:
+        description: 종료 날짜, 시간 포인터 타입
+        type: string
+      name:
+        description: 코스 이름, 최대 100자
+        type: string
+      plans:
+        description: 연결된 계획들, 코스 삭제 시 함께 삭제
+        items:
+          $ref: '#/definitions/types.Plan'
+        type: array
+      total_time:
+        description: 총 시간, 포인터 타입
+        type: integer
+    type: object
+  types.Place:
+    properties:
+      address:
+        description: 장소 주소
+        type: string
+      description:
+        description: Duration  *int       // 소요 시간, 포인터 타입
+        type: string
+      end_time:
+        description: 종료 시간
+        type: string
+      image_url:
+        description: 이미지 URL, 최대 255자
+        type: string
+      mapx:
+        description: X 좌표 (경도 값, 위치 정보)
+        type: string
+      mapy:
+        description: Y 좌표 (위도 값, 위치 정보)
+        type: string
+      start_time:
+        description: 시작 시간
+        type: string
+      title:
+        description: 장소 이름, 최대 100자
+        type: string
+      type:
+        description: 장소 유형
+        type: string
+    type: object
+  types.Plan:
+    properties:
+      day_number:
+        description: 일자 번호
+        type: string
+      places:
+        description: 연결된 장소들, 계획 삭제 시 함께 삭제
+        items:
+          $ref: '#/definitions/types.Place'
+        type: array
+    type: object
+  types.RecommendCourseReq:
+    properties:
+      area_code:
+        description: 지역 코드
+        type: string
+      end_time:
+        type: string
+      interests:
+        description: 관심사
+        items:
+          type: string
+        type: array
+      start_time:
+        description: '여행 시작 시간 (예: "10:00")'
+        type: string
+    type: object
+  util.ResponseDTO:
+    properties:
+      data: {}
+      message:
+        type: string
+      type:
+        type: string
+    type: object
+host: localhost:8080
 info:
   contact: {}
-paths: {}
+  description: 지역 축제 및 여행 추천 서비스
+  title: Course Pick API
+  version: "2.0"
+paths:
+  /courses/ai:
+    post:
+      consumes:
+      - application/json
+      description: 코스 추천이 성공적으로 완료되었습니다.
+      parameters:
+      - description: 추천 요청 데이터
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/types.RecommendCourseReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 성공 응답 데이터
+          schema:
+            allOf:
+            - $ref: '#/definitions/util.ResponseDTO'
+            - properties:
+                data:
+                  $ref: '#/definitions/types.Course'
+              type: object
+        "400":
+          description: 에러 응답 데이터
+          schema:
+            $ref: '#/definitions/util.ResponseDTO'
+      summary: 코스 추천
+      tags:
+      - Courses
+schemes:
+- http
 swagger: "2.0"
