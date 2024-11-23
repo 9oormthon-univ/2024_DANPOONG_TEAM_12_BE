@@ -24,6 +24,7 @@ func (r *UsersRepository) GetByID(userID int64) (*types.User, error) {
 	if err != nil {
 		return nil, err
 	}
+	user.Interests = []string{"맛집 투어", "혼자서", "힐링"}
 	return &user, nil
 }
 
@@ -50,6 +51,7 @@ func (r *UsersRepository) FindByUsername(username string) (*types.User, error) {
 	if err := r.DB.Where("username = ?", username).First(&user).Error; err != nil {
 		return nil, err
 	}
+	user.Interests = []string{"맛집 투어", "혼자서", "힐링"}
 	return &user, nil
 }
 
