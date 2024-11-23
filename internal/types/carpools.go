@@ -5,7 +5,8 @@ import "time"
 type CarpoolsService interface {
 	GetTopLikedCarpools(limit int) ([]CarpoolTopLikesResponseDTO, error)
 	CreateCarpoolsPost(request CreateCarpoolPostRequestDTO) error
-	GetCarpoolList(request GetCarpoolPostRequestDTO) ([]Carpool, error)
+	GetCarpoolList(request GetCarpoolPostRequestDTO) ([]CarpoolPostResponseDTO, error)
+	GetUserCarpoolList(request GetUserCarpoolPostRequestDTO) ([]CarpoolPostResponseDTO, error)
 }
 
 // Carpool 구조체는 카풀 게시글 정보를 나타냅니다.
@@ -72,4 +73,19 @@ type CreateCarpoolPostRequestDTO struct {
 type GetCarpoolPostRequestDTO struct {
 	StartLocation string `json:"start_location"`
 	EndLocation   string `json:"end_location"`
+}
+
+type GetUserCarpoolPostRequestDTO struct {
+	UserID int64 `json:"user_id"`
+}
+
+type CarpoolPostResponseDTO struct {
+	CarpoolID     string `json:"carpool_id"`
+	Title         string `json:"title" binding:"required"`
+	ImageURL      string `json:"image_url"`
+	StartLocation string `json:"start_location"`
+	EndLocation   string `json:"end_location"`
+	UserID        int64  `json:"user_id" binding:"required"`
+	Date          string `json:"date" binding:"required"`
+	StartTime     string `json:"start_time"`
 }

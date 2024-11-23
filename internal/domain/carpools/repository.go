@@ -3,6 +3,7 @@ package carpools
 import (
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/types"
 	"gorm.io/gorm"
+	"log"
 )
 
 type CarpoolsRepository struct {
@@ -41,8 +42,8 @@ func (repository *CarpoolsRepository) SaveCarpoolPost(post types.Carpool) error 
 }
 
 // 카풀 게시글 조회(출발 위치, 목적지 위치 기반)
-func (repository *CarpoolsRepository) findByLocation(request types.GetCarpoolPostRequestDTO) ([]types.Carpool, error) {
-	var carpoolList []types.Carpool
+func (repository *CarpoolsRepository) findByLocation(request types.GetCarpoolPostRequestDTO) ([]types.CarpoolPostResponseDTO, error) {
+	var carpools []types.CarpoolPostResponseDTO
 
 	// 조건에 맞는 카풀 게시글 조회
 	query := repository.DB.Table("carpool").
@@ -50,10 +51,35 @@ func (repository *CarpoolsRepository) findByLocation(request types.GetCarpoolPos
 		Where("end_location LIKE ?", "%"+request.EndLocation+"%").
 		Where("status = ?", "active").
 		Order("date ASC, start_time ASC"). // 날짜와 시간순으로 정렬
-		Find(&carpoolList)
+		Find(&carpools)
 
 	if query.Error != nil {
 		return nil, query.Error
 	}
-	return carpoolList, nil
+	return carpools, nil
+}
+
+// 내가 작성한 카풀 게시글 조회
+func (repository *CarpoolsRepository) findByUser(request types.GetUserCarpoolPostRequestDTO) ([]types.CarpoolPostResponseDTO, error) {
+	var carpools []types.CarpoolPostResponseDTO
+
+	query := repository.DB.Table("carpool").
+		Where("user_id = ?", request.UserID).
+		Where("status = ?", "active").
+		Order("created_at DESC").
+		Scan(&carpools)
+
+	// 에러 처리
+	if query.Error != nil {
+		log.Printf("Error fetching posts for user %d: %v", request.UserID, query.Error)
+		return nil, query.Error
+	}
+
+	// 데이터가 없는 경우 처리
+	if len(carpools) == 0 {
+		log.Printf("No carpool posts found for user %d", request.UserID)
+		return nil, nil // 데이터가 없을 경우 nil 반환
+	}
+
+	return carpools, nil
 }
