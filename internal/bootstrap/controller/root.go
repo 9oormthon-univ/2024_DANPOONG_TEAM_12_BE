@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"net/http"
+
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/bootstrap/service"
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/domain/ai"
 	"github.com/9oormthon-univ/2024_DANPOONG_TEAM_12_BE/internal/domain/auth"
@@ -34,7 +36,7 @@ func SetController(engine *gin.Engine, service *service.Service) *Controller {
 	}
 
 	api := engine.Group("/api")
-
+	api.GET("/", healthMain)
 	api.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	c.UsersController = users.SetUsersController(api, service.UsersService)
@@ -46,4 +48,11 @@ func SetController(engine *gin.Engine, service *service.Service) *Controller {
 	c.AuthController = auth.SetAuthController(api, service.AuthService)
 
 	return c
+}
+
+func healthMain(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, gin.H{
+		"type":    "success",
+		"message": "연결 성공",
+	})
 }

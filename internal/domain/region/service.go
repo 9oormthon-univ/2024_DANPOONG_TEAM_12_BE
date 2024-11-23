@@ -58,7 +58,7 @@ func (r *regionsService) GetAreaBasedList(areaCode types.AreaCode, contentTypeId
 	}
 	log.Println(apiKey)
 	// Query 파라미터 설정
-	v.Set("numOfRows", "2")             // 데이터 개수
+	v.Set("numOfRows", "9")             // 데이터 개수
 	v.Set("pageNo", "1")                // 페이지 번호
 	v.Set("MobileOS", "ETC")            // OS 종류
 	v.Set("MobileApp", "TestApp")       // 앱 이름
